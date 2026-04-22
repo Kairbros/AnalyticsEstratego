@@ -1,0 +1,77 @@
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import Layout from '../../components/Layout';
+import { obtenerDiagnostico } from '../../services/diagnosticos.service';
+import ResultadosDiagnostico from '../../components/ResultadosDiagnostico';
+
+export default function ClienteDiagnosticoVista() {
+  const { id } = useParams();
+  const diagId = Number(id);
+  const [diagnostico, setDiagnostico] = useState(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!Number.isInteger(diagId) || diagId <= 0) {
+      setError('ID de diagnóstico inválido');
+      setCargando(false);
+      return;
+    }
+    let cancelado = false;
+    (async () => {
+      setCargando(true);
+      setError('');
+      try {
+        const d = await obtenerDiagnostico(diagId);
+        if (!cancelado) setDiagnostico(d);
+      } catch (err) {
+        if (!cancelado)
+          setError(
+            err.response?.data?.error || 'No se pudo cargar el diagnóstico',
+          );
+      } finally {
+        if (!cancelado) setCargando(false);
+      }
+    })();
+    return () => {
+      cancelado = true;
+    };
+  }, [diagId]);
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        <Link
+          to="/cliente"
+          className="text-sm text-slate-400 hover:text-estratego-gold"
+        >
+          ← Volver a mis diagnósticos
+        </Link>
+
+        {cargando && <p className="text-sm text-slate-400">Cargando…</p>}
+        {error && <p className="text-sm text-estratego-danger">{error}</p>}
+
+        {diagnostico && (
+          <>
+            {diagnostico.resultados ? (
+              <ResultadosDiagnostico
+                resultados={diagnostico.resultados}
+                diagnosticoId={diagnostico.id}
+                cliente={{
+                  nombre: diagnostico.cliente_nombre,
+                  email: diagnostico.cliente_email,
+                  empresa: diagnostico.cliente_empresa,
+                }}
+                fecha={diagnostico.actualizado_en}
+              />
+            ) : (
+              <p className="text-sm text-slate-400">
+                Este diagnóstico aún no tiene resultados calculados.
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </Layout>
+  );
+}
