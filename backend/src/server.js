@@ -47,4 +47,12 @@ app.listen(PORT, () => {
   console.log('[env] OPENAI_MODEL:', process.env.OPENAI_MODEL || '(default)');
   console.log('[env] SMTP_USER:', process.env.SMTP_USER || 'NO configurado');
   console.log('[env] FRONTEND_URL:', process.env.FRONTEND_URL || '(default)');
+  console.log('[env] DB_HOST:', process.env.DB_HOST || 'NO configurado');
+  console.log('[env] DB_PORT:', process.env.DB_PORT || 'NO configurado');
+  console.log('[env] DB_USER:', process.env.DB_USER || 'NO configurado');
+  console.log('[env] DB_NAME:', process.env.DB_NAME || 'NO configurado');
+  console.log(
+    '[env] DB_PASSWORD:',
+    process.env.DB_PASSWORD ? `(${process.env.DB_PASSWORD.length} chars)` : 'NO configurado',
+  );
 });
