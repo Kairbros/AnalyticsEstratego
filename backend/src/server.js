@@ -9,7 +9,27 @@ import diagnosticosRoutes from './routes/diagnosticos.routes.js';
 
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN ?? '*' }));
+// CORS: acepta una lista de orígenes (coma-separada) además del valor único.
+// Devuelve siempre el header correcto incluso en respuestas 4xx/5xx.
+const ORIGENES_PERMITIDOS = (process.env.CORS_ORIGIN ?? '*')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Requests server-to-server (sin Origin) → permitir.
+      if (!origin) return cb(null, true);
+      if (ORIGENES_PERMITIDOS.includes('*')) return cb(null, true);
+      if (ORIGENES_PERMITIDOS.includes(origin)) return cb(null, true);
+      return cb(new Error(`Origen no permitido: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 app.use(express.json());
 
 app.get('/api/health', async (_req, res) => {

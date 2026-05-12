@@ -113,37 +113,43 @@ router.post(
       let actualizado = await completarConResultados(id, resultados);
       const vendedor = await obtenerUsuarioPorId(req.user.id);
 
-      // 1) Generar propuesta con OpenAI
+      // 1) Generar propuesta con OpenAI (opcional via env var)
+      const PROPUESTA_ENABLED =
+        (process.env.PROPUESTA_ENABLED ?? 'true').toLowerCase() !== 'false';
       let propuestaPlan = null;
       let propuestaPDF = null;
       let avisoPropuesta = null;
-      try {
-        const prop = await generarPropuesta({
-          diagnostico: actualizado,
-          resultados,
-          cliente: {
-            nombre: diagnostico.cliente_nombre,
-            email: diagnostico.cliente_email,
-            empresa: diagnostico.cliente_empresa,
-          },
-          vendedor,
-          propuestaAcordada: actualizado.propuesta_acordada || '',
-        });
-        actualizado = await guardarPropuestaGenerada(id, {
-          plan: prop.plan,
-          texto: prop.propuesta_texto,
-        });
-        propuestaPlan = prop.plan;
-        propuestaPDF = await renderizarPropuestaPDF({
-          textoPropuesta: prop.propuesta_texto,
-          nombreCliente: diagnostico.cliente_nombre,
-          nombreEmpresa: diagnostico.cliente_empresa,
-          plan: prop.plan,
-        });
-      } catch (errProp) {
-        console.error('[calcular] Error al generar propuesta:', errProp);
-        avisoPropuesta =
-          'El diagnóstico se completó, pero no se pudo generar la propuesta comercial automáticamente.';
+      if (PROPUESTA_ENABLED) {
+        try {
+          const prop = await generarPropuesta({
+            diagnostico: actualizado,
+            resultados,
+            cliente: {
+              nombre: diagnostico.cliente_nombre,
+              email: diagnostico.cliente_email,
+              empresa: diagnostico.cliente_empresa,
+            },
+            vendedor,
+            propuestaAcordada: actualizado.propuesta_acordada || '',
+          });
+          actualizado = await guardarPropuestaGenerada(id, {
+            plan: prop.plan,
+            texto: prop.propuesta_texto,
+          });
+          propuestaPlan = prop.plan;
+          propuestaPDF = await renderizarPropuestaPDF({
+            textoPropuesta: prop.propuesta_texto,
+            nombreCliente: diagnostico.cliente_nombre,
+            nombreEmpresa: diagnostico.cliente_empresa,
+            plan: prop.plan,
+          });
+        } catch (errProp) {
+          console.error('[calcular] Error al generar propuesta:', errProp);
+          avisoPropuesta =
+            'El diagnóstico se completó, pero no se pudo generar la propuesta comercial automáticamente.';
+        }
+      } else {
+        console.log('[calcular] Generación de propuesta desactivada (PROPUESTA_ENABLED=false)');
       }
 
       // 2) Regenerar contraseña + enviar correo con PDF adjunto
