@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// En dev el proxy de Vite hace forward de /api → localhost:3001.
+// En producción el frontend se sirve estático y necesita la URL absoluta
+// del backend, que llega vía VITE_API_URL en build time.
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 10_000,
 });
 
