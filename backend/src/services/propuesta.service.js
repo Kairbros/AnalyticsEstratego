@@ -56,6 +56,8 @@ function resumirDiagnostico({ diagnostico, resultados, cliente, vendedor }) {
   const fuga = resultados.fuga_capital || {};
   const roi = resultados.roi || {};
   const ctx = resultados.contexto_facturacion || null;
+  const planRec = roi.plan_recomendado || null;
+  const setupRec = roi.setup_inicial || roi.inversion_total || null;
 
   const tiempoRespMin = opt.tiempo_respuesta_min || 0;
   const tiempoRespStr =
@@ -111,6 +113,11 @@ FUGA Y POTENCIAL CALCULADO
 - Mejora anual proyectada: ${fmtUSD(opt.mejora_anual)}
 - ROI anual estimado contra fee Estratego: ${roi.roi_porcentaje}%
 
+RECOMENDACIÓN AUTOMÁTICA DEL SISTEMA
+- Plan recomendado por el motor según tamaño del cliente: ${planRec ? planRec.toUpperCase() : '(no disponible)'}
+- Setup correspondiente: ${setupRec ? fmtUSD(setupRec) : '(no disponible)'}
+- Esta recomendación se basa en facturación + volumen de leads. RESPÉTALA salvo que las notas del vendedor explícitamente indiquen otro plan.
+
 VENDEDOR
 - ${vendedor?.nombre || 'Asesor Estratego'}
 `.trim();
@@ -123,7 +130,7 @@ Tu tarea es entregar una propuesta comercial PERSONALIZADA para un cliente, esco
 Tienes 4 plantillas base (STARTER, LAUNCH, SCALE, PREMIUM). Debes:
 1. Analizar los datos del diagnóstico (volumen, sector, fuga, equipo, canales, ticket).
 2. Analizar la propuesta acordada que escribió el vendedor.
-3. ESCOGER EL PLAN que mejor encaje con la realidad del cliente.
+3. ESCOGER EL PLAN: USA EL PLAN RECOMENDADO POR EL MOTOR (campo "Plan recomendado por el motor" en los datos). El ROI mostrado al cliente ya fue calculado con ese plan; si eliges otro plan rompes la coherencia entre el diagnóstico y la propuesta.
 4. RELLENAR todos los placeholders del template ([NOMBRE DEL CLIENTE], [NOMBRE DE LA EMPRESA], [CANAL PRINCIPAL], [CANAL 1], [CANAL 2], [CANAL 3], [FECHA], [48 HORAS / 7 DÍAS]).
 5. Personalizar el resumen ejecutivo y el "costo de seguir igual" con datos concretos del diagnóstico (números reales de fuga, conversión, canales que usa, sector).
 6. Conservar el formato exacto del template: encabezados con líneas de ===, secciones numeradas, lista de inclusiones, inversión, etc.
@@ -132,13 +139,16 @@ Tienes 4 plantillas base (STARTER, LAUNCH, SCALE, PREMIUM). Debes:
 9. NO inventar precios distintos a los del plan elegido. NO mover los montos.
 10. NO añadir secciones que no estén en el template. NO quitar secciones.
 
-REGLA DE SELECCIÓN DEL PLAN (referencia):
-- STARTER (USD 900 + 600/mes): negocios pequeños, < 100 leads/mes, 1 canal, sin CRM, equipo pequeño.
-- LAUNCH (USD 2,500 + 900/mes): negocios con flujo establecido, 100-500 leads/mes, quieren formalizar el embudo.
-- SCALE (USD 5,000 + 1,000/mes): operación con volumen, 500-1,500 leads/mes, varios canales, CRM con uso parcial.
-- PREMIUM (USD 9,000 + 1,500/mes): operación compleja, > 1,500 leads/mes, múltiples canales, ticket alto, requiere arquitectura completa.
+PRIORIDAD DE SELECCIÓN DEL PLAN (en este orden):
+A. Si el vendedor menciona explícitamente un plan distinto en sus notas → respétalo y explica por qué.
+B. En cualquier otro caso → usa el plan recomendado por el motor.
+C. NUNCA elijas un plan más caro que el recomendado solo porque "vende más" — eso rompe el ROI mostrado al cliente.
 
-Si la propuesta acordada del vendedor menciona un plan específico, respeta esa elección.
+Tabla de referencia de planes (no para decidir, solo para conocer cifras):
+- STARTER (USD 900 + 600/mes): negocios pequeños, < 100 leads/mes, sin CRM.
+- LAUNCH (USD 2,500 + 900/mes): flujo establecido, 100-500 leads/mes.
+- SCALE (USD 5,000 + 1,000/mes): operación con volumen, 500-1,500 leads/mes.
+- PREMIUM (USD 9,000 + 1,500/mes): operación compleja, > 1,500 leads/mes.
 
 DEBES responder con un objeto JSON con esta forma EXACTA:
 {
