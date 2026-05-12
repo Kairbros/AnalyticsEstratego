@@ -5,16 +5,9 @@ import {
   obtenerDiagnostico,
   actualizarDiagnostico,
   calcularDiagnostico,
+  descargarPropuestaPDF,
 } from '../../services/diagnosticos.service';
 import ResultadosDiagnostico from '../../components/ResultadosDiagnostico';
-
-const FACTURACION_OPCIONES = [
-  { value: 'menor_15k', label: '< USD 15,000' },
-  { value: '15k_30k', label: 'USD 15,000 – 30,000' },
-  { value: '30k_60k', label: 'USD 30,000 – 60,000' },
-  { value: '60k_100k', label: 'USD 60,000 – 100,000' },
-  { value: 'mayor_100k', label: '> USD 100,000' },
-];
 
 const CANALES_OPCIONES = [
   { value: 'whatsapp', label: 'WhatsApp' },
@@ -40,13 +33,6 @@ const SECTOR_OPCIONES = [
   { value: 'otro', label: 'Otro' },
 ];
 
-const TIEMPO_RESPUESTA_OPCIONES = [
-  { value: 'menor_1h', label: 'Menos de 1 hora' },
-  { value: '1h_4h', label: '1 a 4 horas' },
-  { value: '4h_24h', label: '4 a 24 horas' },
-  { value: 'mayor_24h', label: 'Más de 24 horas' },
-];
-
 const CRM_OPCIONES = [
   { value: 'tiempo_real', label: 'Se actualiza en tiempo real' },
   { value: 'con_retraso', label: 'Se actualiza con retraso' },
@@ -54,7 +40,7 @@ const CRM_OPCIONES = [
 ];
 
 const BLOQUE_A_INICIAL = {
-  facturacion_mensual_rango: '',
+  facturacion_mensual_usd: '',
   leads_semana: '',
   canales_leads: [],
   equipo_ventas: '',
@@ -65,7 +51,8 @@ const BLOQUE_A_INICIAL = {
 };
 const BLOQUE_B_INICIAL = {
   leads_respondidos_mismo_dia: '',
-  tiempo_respuesta: '',
+  tiempo_respuesta_valor: '',
+  tiempo_respuesta_unidad: 'min',
   reuniones_de_10_contactados: '',
   asistencia_de_10: '',
   cierres_de_10_reuniones: '',
@@ -73,6 +60,28 @@ const BLOQUE_B_INICIAL = {
   seguimiento_descripcion: '',
   crm_actualizacion: '',
 };
+
+// Penalización aplicada al potencial de contacto/agendamiento por velocidad
+// de respuesta. Coincide con la matriz `factoresRespuesta` del backend.
+// Valor = (1 - F_contact) * 100, capado a 0 cuando la velocidad es óptima.
+//   0-5 min: 0%, 5-10 min: 15%, 10-30 min: 35%, 30-60 min: 48%,
+//   1-4 h: 58%, 4-24 h: 68%, >24 h: 80%
+export function calcularPenalizacionRespuesta(minutos) {
+  const m = Number(minutos);
+  if (!Number.isFinite(m) || m <= 5) return 0;
+  if (m <= 10) return 15;
+  if (m <= 30) return 35;
+  if (m <= 60) return 48;
+  if (m <= 240) return 58;
+  if (m <= 1440) return 68;
+  return 80;
+}
+
+function tiempoRespuestaEnMinutos(valor, unidad) {
+  const v = Number(valor);
+  if (!Number.isFinite(v) || v < 0) return null;
+  return unidad === 'h' ? v * 60 : v;
+}
 const BLOQUE_C_INICIAL = {
   costo_por_lead: '',
   clientes_activos: '',
@@ -105,6 +114,9 @@ export default function DiagnosticoEditor() {
   const diagId = Number(id);
 
   const [diagnostico, setDiagnostico] = useState(null);
+  const [nombre, setNombre] = useState('');
+  const [propuestaAcordada, setPropuestaAcordada] = useState('');
+  const [descargandoPropuesta, setDescargandoPropuesta] = useState(false);
   const [data, setData] = useState({
     a: BLOQUE_A_INICIAL,
     b: BLOQUE_B_INICIAL,
@@ -118,6 +130,8 @@ export default function DiagnosticoEditor() {
   const [ultimoGuardado, setUltimoGuardado] = useState(null);
   const [calculando, setCalculando] = useState(false);
   const [errorCalculo, setErrorCalculo] = useState('');
+  const [infoCorreo, setInfoCorreo] = useState('');
+  const [erroresValidacion, setErroresValidacion] = useState([]);
 
   const listoParaAutosave = useRef(false);
 
@@ -135,6 +149,8 @@ export default function DiagnosticoEditor() {
         const d = await obtenerDiagnostico(diagId);
         if (cancelado) return;
         setDiagnostico(d);
+        setNombre(d.nombre || '');
+        setPropuestaAcordada(d.propuesta_acordada || '');
         setData({
           a: normalizar(BLOQUE_A_INICIAL, d.bloque_a),
           b: normalizar(BLOQUE_B_INICIAL, d.bloque_b),
@@ -164,17 +180,23 @@ export default function DiagnosticoEditor() {
 
   useEffect(() => {
     if (!listoParaAutosave.current) return;
-    if (bloqueado) return;
     const t = setTimeout(async () => {
       setGuardando(true);
       setErrorGuardado('');
       try {
-        const actualizado = await actualizarDiagnostico(diagId, {
-          bloque_a: data.a,
-          bloque_b: data.b,
-          bloque_c: data.c,
-          bloque_d: data.d,
-        });
+        const payload = {
+          nombre: nombre.trim() ? nombre.trim() : null,
+        };
+        if (!bloqueado) {
+          payload.bloque_a = data.a;
+          payload.bloque_b = data.b;
+          payload.bloque_c = data.c;
+          payload.bloque_d = data.d;
+          payload.propuesta_acordada = propuestaAcordada.trim()
+            ? propuestaAcordada.trim()
+            : null;
+        }
+        const actualizado = await actualizarDiagnostico(diagId, payload);
         setUltimoGuardado(new Date(actualizado.actualizado_en));
       } catch (err) {
         setErrorGuardado(err.response?.data?.error || 'No se pudo guardar');
@@ -183,7 +205,7 @@ export default function DiagnosticoEditor() {
       }
     }, 900);
     return () => clearTimeout(t);
-  }, [data, bloqueado, diagId]);
+  }, [data, nombre, propuestaAcordada, bloqueado, diagId]);
 
   function setBloque(key, updater) {
     setData((prev) => ({
@@ -204,17 +226,83 @@ export default function DiagnosticoEditor() {
     });
   }
 
+  function validarCampos() {
+    const errores = [];
+    const a = data.a, b = data.b, c = data.c, d = data.d;
+    const lleno = (v) => v !== '' && v != null;
+    const llenoPositivo = (v) => lleno(v) && Number(v) > 0;
+
+    if (!llenoPositivo(a.facturacion_mensual_usd)) errores.push('Facturación mensual');
+    if (!llenoPositivo(a.leads_semana)) errores.push('Leads por semana');
+    if (!a.canales_leads || a.canales_leads.length === 0) errores.push('Canales de captación de leads');
+    if (!lleno(a.equipo_ventas)) errores.push('Personas en el equipo de ventas');
+    if (!llenoPositivo(a.ticket_promedio)) errores.push('Ticket promedio');
+    if (!a.sector) errores.push('Sector');
+    if (a.sector === 'otro' && !a.sector_otro?.trim()) errores.push('Detalle del sector');
+    if (!llenoPositivo(a.inversion_publicidad_mensual)) errores.push('Inversión publicitaria mensual');
+
+    if (!lleno(b.leads_respondidos_mismo_dia)) errores.push('Leads respondidos el mismo día');
+    if (!llenoPositivo(b.tiempo_respuesta_valor)) errores.push('Tiempo promedio de primera respuesta');
+    if (!lleno(b.reuniones_de_10_contactados)) errores.push('Reuniones agendadas (de 10)');
+    if (!lleno(b.asistencia_de_10)) errores.push('Asistencia a reuniones (de 10)');
+    if (!lleno(b.cierres_de_10_reuniones)) errores.push('Cierres de venta (de 10)');
+    if (!b.crm_actualizacion) errores.push('Actualización del CRM');
+    if (b.tiene_seguimiento && !b.seguimiento_descripcion?.trim())
+      errores.push('Descripción del proceso de seguimiento');
+
+    if (!llenoPositivo(c.costo_por_lead)) errores.push('Costo por lead');
+    if (!llenoPositivo(c.clientes_activos)) errores.push('Clientes activos');
+    if (!llenoPositivo(c.ltv_cliente)) errores.push('LTV por cliente');
+
+    if (!lleno(d.horas_semanales_seguimiento)) errores.push('Horas semanales de seguimiento');
+    if (d.tiene_horario_atencion && !d.horario_atencion?.trim())
+      errores.push('Detalle del horario de atención');
+    if (!d.leads_fuera_horario?.trim()) errores.push('Qué pasa con los leads fuera de horario');
+    if (!lleno(d.ventas_perdidas_conocidas)) errores.push('Ventas perdidas conocidas');
+
+    if (!propuestaAcordada.trim() || propuestaAcordada.trim().length < 20) {
+      errores.push('Propuesta acordada con el cliente (mínimo 20 caracteres)');
+    }
+
+    return errores;
+  }
+
   async function handleCalcular() {
+    const faltantes = validarCampos();
+    if (faltantes.length > 0) {
+      setErroresValidacion(faltantes);
+      setErrorCalculo('');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    setErroresValidacion([]);
     const ok = window.confirm(
       'Al calcular los resultados el diagnóstico quedará marcado como completado y no podrá editarse. ¿Continuar?',
     );
     if (!ok) return;
     setCalculando(true);
     setErrorCalculo('');
+    setInfoCorreo('');
     try {
-      const actualizado = await calcularDiagnostico(diagId);
+      const resp = await calcularDiagnostico(diagId);
       listoParaAutosave.current = false;
-      setDiagnostico(actualizado);
+      setDiagnostico(resp.diagnostico);
+      const partes = [];
+      if (resp.correoEnviado) {
+        partes.push(
+          'Se envió un correo al cliente con su nueva contraseña y el enlace.',
+        );
+      } else if (resp.avisoCorreo) {
+        partes.push(resp.avisoCorreo);
+      }
+      if (resp.propuestaPlan) {
+        partes.push(
+          `Propuesta generada (plan ${resp.propuestaPlan.toUpperCase()}) y adjunta al correo.`,
+        );
+      } else if (resp.avisoPropuesta) {
+        partes.push(resp.avisoPropuesta);
+      }
+      if (partes.length) setInfoCorreo(partes.join(' '));
     } catch (err) {
       setErrorCalculo(
         err.response?.data?.error || 'No se pudo calcular el diagnóstico',
@@ -278,10 +366,18 @@ export default function DiagnosticoEditor() {
           <>
             <section className="card">
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="font-display text-xl font-semibold text-slate-100">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-estratego-gold">
                     Diagnóstico #{diagnostico.id}
-                  </h2>
+                  </p>
+                  <input
+                    type="text"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    maxLength={200}
+                    placeholder="Nombre del diagnóstico (opcional)"
+                    className="mt-1 w-full bg-transparent border-0 border-b border-transparent hover:border-estratego-border focus:border-estratego-gold focus:outline-none font-display text-xl font-semibold text-slate-100 placeholder:text-slate-500 placeholder:font-normal px-0 py-1"
+                  />
                   <p className="text-sm text-slate-300 mt-1">
                     {diagnostico.cliente_nombre}
                     {diagnostico.cliente_empresa
@@ -319,6 +415,31 @@ export default function DiagnosticoEditor() {
                 costoSugerido={costoPorLeadSugerido}
               />
               <BloqueD data={data.d} onChange={(v) => setBloque('d', v)} />
+
+              <section className="card">
+                <header className="mb-3">
+                  <h3 className="font-display text-lg font-semibold text-slate-100">
+                    Propuesta acordada con el cliente
+                    <span className="text-estratego-danger ml-1">*</span>
+                  </h3>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Escribe lo que conversaste con el cliente: plan tentativo, alcance,
+                    canales, tiempos y cualquier detalle que quieras que el agente IA
+                    considere al armar la propuesta final.
+                  </p>
+                </header>
+                <textarea
+                  rows={5}
+                  maxLength={5000}
+                  placeholder="Ej. Cliente acordó implementación tipo LAUNCH con WhatsApp como canal principal, foco en automatizar respuesta inicial y agendamiento. Disponible para arrancar la próxima semana. Quiere enfatizar el ROI a 3 meses…"
+                  className={claseInput}
+                  value={propuestaAcordada}
+                  onChange={(e) => setPropuestaAcordada(e.target.value)}
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {propuestaAcordada.length} / 5000
+                </p>
+              </section>
             </fieldset>
 
             {!bloqueado && (
@@ -346,10 +467,64 @@ export default function DiagnosticoEditor() {
               </section>
             )}
 
+            {erroresValidacion.length > 0 && (
+              <section className="card border-estratego-danger/40 bg-estratego-danger/5">
+                <h3 className="font-display text-sm font-semibold text-estratego-danger uppercase tracking-wider mb-2">
+                  Faltan campos obligatorios ({erroresValidacion.length})
+                </h3>
+                <ul className="text-sm text-slate-300 list-disc pl-5 space-y-0.5">
+                  {erroresValidacion.map((e) => (
+                    <li key={e}>{e}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {infoCorreo && (
+              <p className="text-sm text-estratego-success bg-estratego-success/10 border border-estratego-success/20 rounded-lg px-3 py-2">
+                {infoCorreo}
+              </p>
+            )}
+
+            {bloqueado && diagnostico.propuesta_plan && (
+              <section className="card flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-display text-lg font-semibold text-slate-100">
+                    Propuesta comercial
+                  </h3>
+                  <p className="text-sm text-slate-400">
+                    Plan recomendado:{' '}
+                    <span className="text-estratego-gold font-semibold">
+                      {String(diagnostico.propuesta_plan).toUpperCase()}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={descargandoPropuesta}
+                  onClick={async () => {
+                    setDescargandoPropuesta(true);
+                    try {
+                      await descargarPropuestaPDF(
+                        diagId,
+                        `propuesta_${diagnostico.propuesta_plan}_${diagnostico.cliente_nombre || diagId}.pdf`,
+                      );
+                    } finally {
+                      setDescargandoPropuesta(false);
+                    }
+                  }}
+                  className="btn-gold"
+                >
+                  {descargandoPropuesta ? 'Descargando…' : 'Descargar propuesta PDF'}
+                </button>
+              </section>
+            )}
+
             {bloqueado && diagnostico.resultados && (
               <ResultadosDiagnostico
                 resultados={diagnostico.resultados}
                 diagnosticoId={diagnostico.id}
+                nombreDiagnostico={diagnostico.nombre}
                 cliente={{
                   nombre: diagnostico.cliente_nombre,
                   email: diagnostico.cliente_email,
@@ -388,11 +563,65 @@ function Card({ titulo, descripcion, tag, children }) {
   );
 }
 
-function Campo({ label, children, full = false }) {
+function Campo({ label, children, full = false, required = false }) {
   return (
     <div className={`flex flex-col ${full ? 'md:col-span-2' : ''}`}>
-      <label className={claseLabel}>{label}</label>
+      <label className={claseLabel}>
+        {label}
+        {required && <span className="text-estratego-danger ml-1">*</span>}
+      </label>
       {children}
+    </div>
+  );
+}
+
+function BarraSegmentada({ valor, max = 10, onChange }) {
+  const num = Number(valor);
+  const v = Number.isFinite(num) ? Math.min(max, Math.max(0, Math.round(num))) : 0;
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex gap-0.5 flex-1">
+        {Array.from({ length: max }).map((_, i) => {
+          const activo = i < v;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onChange(String(i + 1))}
+              className={`flex-1 h-5 rounded transition-colors ${
+                activo
+                  ? 'bg-estratego-gold hover:bg-estratego-gold/90'
+                  : 'bg-estratego-border/50 hover:bg-estratego-border'
+              }`}
+              aria-label={`Seleccionar ${i + 1}`}
+            />
+          );
+        })}
+      </div>
+      <span className="font-display text-sm font-semibold text-estratego-gold whitespace-nowrap min-w-[36px] text-right">
+        {v}<span className="text-slate-500 font-normal">/{max}</span>
+      </span>
+    </div>
+  );
+}
+
+function Slider({ valor, min = 0, max, step = 1, sufijo = '', onChange }) {
+  const num = Number(valor);
+  const v = Number.isFinite(num) ? Math.min(max, Math.max(min, num)) : min;
+  return (
+    <div className="flex items-center gap-3">
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={v}
+        onChange={(e) => onChange(e.target.value)}
+        className="flex-1 accent-estratego-gold cursor-pointer"
+      />
+      <span className="font-display text-sm font-semibold text-estratego-gold whitespace-nowrap min-w-[60px] text-right">
+        {v}{sufijo ? <span className="text-slate-500 font-normal">{sufijo}</span> : null}
+      </span>
     </div>
   );
 }
@@ -405,32 +634,30 @@ function BloqueA({ data, onChange, onToggleCanal }) {
       descripcion="Información base para dimensionar el embudo y la inversión comercial."
       tag="Bloque A"
     >
-      <Campo label="Facturación mensual">
-        <select
-          className={claseInput}
-          value={data.facturacion_mensual_rango}
-          onChange={(e) => set('facturacion_mensual_rango', e.target.value)}
-        >
-          <option value="">Selecciona…</option>
-          {FACTURACION_OPCIONES.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </Campo>
-
-      <Campo label="Leads por semana">
+      <Campo label="Facturación mensual (USD)" required>
         <input
           type="number"
           min={0}
+          step="0.01"
+          className={claseInput}
+          placeholder="Ej. 25000"
+          value={data.facturacion_mensual_usd}
+          onChange={(e) => set('facturacion_mensual_usd', e.target.value)}
+        />
+      </Campo>
+
+      <Campo label="Leads por semana" required>
+        <input
+          type="number"
+          min={0}
+          placeholder="Ej. 25"
           className={claseInput}
           value={data.leads_semana}
           onChange={(e) => set('leads_semana', e.target.value)}
         />
       </Campo>
 
-      <Campo label="Canales de captación de leads" full>
+      <Campo label="Canales de captación de leads" full required>
         <div className="flex flex-wrap gap-2">
           {CANALES_OPCIONES.map((c) => {
             const activo = data.canales_leads.includes(c.value);
@@ -452,28 +679,30 @@ function BloqueA({ data, onChange, onToggleCanal }) {
         </div>
       </Campo>
 
-      <Campo label="Personas en el equipo de ventas">
-        <input
-          type="number"
+      <Campo label="Personas en el equipo de ventas" required>
+        <Slider
+          valor={data.equipo_ventas}
           min={0}
-          className={claseInput}
-          value={data.equipo_ventas}
-          onChange={(e) => set('equipo_ventas', e.target.value)}
+          max={30}
+          step={1}
+          sufijo=" personas"
+          onChange={(v) => set('equipo_ventas', v)}
         />
       </Campo>
 
-      <Campo label="Ticket promedio (USD)">
+      <Campo label="Ticket promedio (USD)" required>
         <input
           type="number"
           min={0}
           step="0.01"
+          placeholder="Ej. 450"
           className={claseInput}
           value={data.ticket_promedio}
           onChange={(e) => set('ticket_promedio', e.target.value)}
         />
       </Campo>
 
-      <Campo label="Sector">
+      <Campo label="Sector" required>
         <select
           className={claseInput}
           value={data.sector}
@@ -489,10 +718,11 @@ function BloqueA({ data, onChange, onToggleCanal }) {
       </Campo>
 
       {data.sector === 'otro' && (
-        <Campo label="Especifica el sector">
+        <Campo label="Especifica el sector" required>
           <input
             type="text"
             maxLength={100}
+            placeholder="Ej. Turismo, Agroindustria…"
             className={claseInput}
             value={data.sector_otro}
             onChange={(e) => set('sector_otro', e.target.value)}
@@ -500,11 +730,12 @@ function BloqueA({ data, onChange, onToggleCanal }) {
         </Campo>
       )}
 
-      <Campo label="Inversión publicitaria mensual (USD)">
+      <Campo label="Inversión publicitaria mensual (USD)" required>
         <input
           type="number"
           min={0}
           step="0.01"
+          placeholder="Ej. 1500"
           className={claseInput}
           value={data.inversion_publicidad_mensual}
           onChange={(e) => set('inversion_publicidad_mensual', e.target.value)}
@@ -522,66 +753,113 @@ function BloqueB({ data, onChange }) {
       descripcion="Tasas reales del proceso de ventas actual."
       tag="Bloque B"
     >
-      <Campo label="De 10 leads, ¿a cuántos responden el mismo día?">
-        <input
-          type="number"
-          min={0}
+      <Campo label="De 10 leads, ¿a cuántos responden el mismo día?" required>
+        <BarraSegmentada
+          valor={data.leads_respondidos_mismo_dia}
           max={10}
-          className={claseInput}
-          value={data.leads_respondidos_mismo_dia}
-          onChange={(e) => set('leads_respondidos_mismo_dia', e.target.value)}
+          onChange={(v) => set('leads_respondidos_mismo_dia', v)}
         />
       </Campo>
 
-      <Campo label="Tiempo promedio de primera respuesta">
-        <select
-          className={claseInput}
-          value={data.tiempo_respuesta}
-          onChange={(e) => set('tiempo_respuesta', e.target.value)}
-        >
-          <option value="">Selecciona…</option>
-          {TIEMPO_RESPUESTA_OPCIONES.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </Campo>
-
-      <Campo label="De 10 contactados, ¿cuántos agendan reunión?">
-        <input
-          type="number"
-          min={0}
+      <Campo label="De 10 contactados, ¿cuántos agendan reunión?" required>
+        <BarraSegmentada
+          valor={data.reuniones_de_10_contactados}
           max={10}
-          className={claseInput}
-          value={data.reuniones_de_10_contactados}
-          onChange={(e) => set('reuniones_de_10_contactados', e.target.value)}
+          onChange={(v) => set('reuniones_de_10_contactados', v)}
         />
       </Campo>
 
-      <Campo label="De 10 reuniones agendadas, ¿cuántas asisten?">
-        <input
-          type="number"
-          min={0}
+      <Campo label="De 10 reuniones agendadas, ¿cuántas asisten?" required>
+        <BarraSegmentada
+          valor={data.asistencia_de_10}
           max={10}
-          className={claseInput}
-          value={data.asistencia_de_10}
-          onChange={(e) => set('asistencia_de_10', e.target.value)}
+          onChange={(v) => set('asistencia_de_10', v)}
         />
       </Campo>
 
-      <Campo label="De 10 reuniones, ¿cuántas cierran venta?">
-        <input
-          type="number"
-          min={0}
+      <Campo label="De 10 reuniones, ¿cuántas cierran venta?" required>
+        <BarraSegmentada
+          valor={data.cierres_de_10_reuniones}
           max={10}
-          className={claseInput}
-          value={data.cierres_de_10_reuniones}
-          onChange={(e) => set('cierres_de_10_reuniones', e.target.value)}
+          onChange={(v) => set('cierres_de_10_reuniones', v)}
         />
       </Campo>
 
-      <Campo label="Actualización del CRM">
+      <Campo label="Tiempo promedio de primera respuesta" required>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min={0}
+            step="1"
+            placeholder="Ej. 30"
+            className={`${claseInput} flex-1`}
+            value={data.tiempo_respuesta_valor}
+            onChange={(e) => set('tiempo_respuesta_valor', e.target.value)}
+          />
+          <div className="flex rounded border border-estratego-border overflow-hidden text-xs">
+            {[
+              { value: 'min', label: 'min' },
+              { value: 'h', label: 'h' },
+            ].map((u) => (
+              <button
+                key={u.value}
+                type="button"
+                onClick={() => set('tiempo_respuesta_unidad', u.value)}
+                className={`px-3 py-1 ${
+                  data.tiempo_respuesta_unidad === u.value
+                    ? 'bg-estratego-gold text-estratego-ink font-semibold'
+                    : 'bg-transparent text-slate-400 hover:bg-white/5'
+                }`}
+              >
+                {u.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {(() => {
+          const min = tiempoRespuestaEnMinutos(
+            data.tiempo_respuesta_valor,
+            data.tiempo_respuesta_unidad,
+          );
+          const p = calcularPenalizacionRespuesta(min);
+          if (min == null || min <= 0) {
+            return (
+              <p className="text-[11px] text-slate-500 mt-1">
+                Ingresa cuánto tarda en promedio la primera respuesta a un lead.
+              </p>
+            );
+          }
+          if (p === 0) {
+            return (
+              <div className="mt-1 space-y-1">
+                <p className="text-[11px] text-estratego-success">
+                  Velocidad óptima — sin penalización sobre el potencial.
+                </p>
+                <p className="text-[11px] text-estratego-gold">
+                  Control del Instante™ mantiene la respuesta en{' '}
+                  <strong>&lt;60 segundos</strong>, conservando el bonus{' '}
+                  <strong>+10%</strong> sobre el contacto.
+                </p>
+              </div>
+            );
+          }
+          return (
+            <div className="mt-1 space-y-1">
+              <p className="text-[11px] text-estratego-danger">
+                Penalización aplicada al potencial proyectado:{' '}
+                <strong>−{p}%</strong>
+              </p>
+              <p className="text-[11px] text-estratego-success">
+                Con Control del Instante™ tu respuesta media baja a{' '}
+                <strong>&lt;60 segundos</strong>, eliminando esta penalización y
+                agregando un bonus de <strong>+10%</strong> al contacto.
+              </p>
+            </div>
+          );
+        })()}
+      </Campo>
+
+      <Campo label="Actualización del CRM" required>
         <select
           className={claseInput}
           value={data.crm_actualizacion}
@@ -627,12 +905,13 @@ function BloqueC({ data, onChange, costoSugerido }) {
       descripcion="Costos de adquisición y valor de vida del cliente."
       tag="Bloque C"
     >
-      <Campo label="Costo por lead (USD)">
+      <Campo label="Costo por lead (USD)" required>
         <div className="flex items-center gap-2">
           <input
             type="number"
             min={0}
             step="0.01"
+            placeholder="Ej. 15"
             className={`${claseInput} flex-1`}
             value={data.costo_por_lead}
             onChange={(e) => set('costo_por_lead', e.target.value)}
@@ -656,25 +935,30 @@ function BloqueC({ data, onChange, costoSugerido }) {
         </span>
       </Campo>
 
-      <Campo label="Clientes activos">
+      <Campo label="Clientes activos" required>
         <input
           type="number"
           min={0}
+          placeholder="Ej. 120"
           className={claseInput}
           value={data.clientes_activos}
           onChange={(e) => set('clientes_activos', e.target.value)}
         />
       </Campo>
 
-      <Campo label="LTV por cliente (USD)">
+      <Campo label="Valor total por cliente (USD)" required>
         <input
           type="number"
           min={0}
           step="0.01"
+          placeholder="Ej. 1200"
           className={claseInput}
           value={data.ltv_cliente}
           onChange={(e) => set('ltv_cliente', e.target.value)}
         />
+        <p className="text-[11px] text-slate-500 mt-1">
+          Cuánto gasta un cliente en promedio durante todo el tiempo que compra contigo.
+        </p>
       </Campo>
     </Card>
   );
@@ -688,24 +972,25 @@ function BloqueD({ data, onChange }) {
       descripcion="Tiempo dedicado al seguimiento y leads que se pierden por falta de atención."
       tag="Bloque D"
     >
-      <Campo label="Horas semanales dedicadas a seguimiento">
-        <input
-          type="number"
+      <Campo label="Horas semanales dedicadas a seguimiento" required>
+        <Slider
+          valor={data.horas_semanales_seguimiento}
           min={0}
-          step="0.5"
-          className={claseInput}
-          value={data.horas_semanales_seguimiento}
-          onChange={(e) => set('horas_semanales_seguimiento', e.target.value)}
+          max={40}
+          step={1}
+          sufijo=" h/sem"
+          onChange={(v) => set('horas_semanales_seguimiento', v)}
         />
       </Campo>
 
-      <Campo label="Ventas perdidas conocidas (último mes)">
-        <input
-          type="number"
+      <Campo label="Ventas perdidas conocidas (último mes)" required>
+        <Slider
+          valor={data.ventas_perdidas_conocidas}
           min={0}
-          className={claseInput}
-          value={data.ventas_perdidas_conocidas}
-          onChange={(e) => set('ventas_perdidas_conocidas', e.target.value)}
+          max={50}
+          step={1}
+          sufijo=" ventas"
+          onChange={(v) => set('ventas_perdidas_conocidas', v)}
         />
       </Campo>
 
@@ -729,7 +1014,7 @@ function BloqueD({ data, onChange }) {
         )}
       </Campo>
 
-      <Campo label="¿Qué pasa con los leads fuera de horario?" full>
+      <Campo label="¿Qué pasa con los leads fuera de horario?" full required>
         <textarea
           rows={2}
           placeholder="Describe qué sucede con los leads que llegan fuera del horario de atención"

@@ -1,0 +1,304 @@
+ESTRATEGO
+Business AI Architecture · Florida, United States
+estratego.us
+
+PROPUESTA COMERCIAL DE IMPLEMENTACIÓN
+Control del Instante™
+
+Plan presentado: LAUNCH
+Nombre comercial: Implementación Core de Control del Instante™
+
+Preparado para: [NOMBRE DEL CLIENTE]
+Empresa: [NOMBRE DE LA EMPRESA]
+Preparado por: Luis Posada
+Business AI Architect · Fundador de Estratego
+Fecha: [FECHA]
+Vigencia: [48 HORAS / 7 DÍAS]
+Documento confidencial
+
+============================================================
+RESUMEN EJECUTIVO
+============================================================
+
+[NOMBRE DEL CLIENTE], esta propuesta presenta la implementación core de Control del Instante™ para [NOMBRE DE LA EMPRESA].
+
+El objetivo es transformar [CANAL PRINCIPAL] en una unidad comercial más rápida, ordenada y medible: un sistema que responde, califica, agenda de forma básica, registra oportunidades y activa seguimiento inicial.
+
+La mayoría de negocios no pierde oportunidades por falta de interés del mercado. Las pierde porque el proceso comercial inicial depende demasiado de disponibilidad humana, memoria, mensajes sueltos y seguimiento irregular.
+
+Control del Instante™ instala un estándar: cada oportunidad debe ser atendida, filtrada, documentada y llevada al siguiente paso con método.
+
+
+============================================================
+EL COSTO DE SEGUIR IGUAL
+============================================================
+
+Cuando una oportunidad entra y no existe un sistema de control, el negocio pierde velocidad, claridad y seguimiento.
+
+Las fugas más comunes son:
+
+1. Respuesta inconsistente:
+El prospecto escribe, pero la atención depende de que alguien esté disponible.
+
+2. Calificación incompleta:
+El equipo conversa, pero no siempre obtiene los datos necesarios para saber si la oportunidad vale la pena.
+
+3. Seguimiento débil:
+El prospecto muestra interés, pero no siempre recibe continuidad en el momento correcto.
+
+4. CRM incompleto:
+La conversación ocurrió, pero la información no quedó registrada de manera útil.
+
+5. Visibilidad limitada:
+El dueño o director no ve con claridad cuántas oportunidades entraron, cuántas avanzaron y dónde se estancaron.
+
+El problema no es solo contestar más rápido. El problema es convertir cada conversación en un proceso comercial controlado.
+
+
+============================================================
+OBJETIVO DEL PROGRAMA
+============================================================
+
+Instalar la versión core de Control del Instante™ para que [NOMBRE DE LA EMPRESA] pueda:
+
+- Responder oportunidades desde [CANAL PRINCIPAL].
+- Calificar prospectos con preguntas definidas.
+- Guiar al siguiente paso.
+- Agendar de forma básica cuando aplique.
+- Registrar información en CRM.
+- Activar seguimiento inicial.
+- Medir el avance de oportunidades por etapa.
+
+El resultado esperado es una operación comercial más consistente, menos dependiente de improvisación y más fácil de controlar.
+
+
+============================================================
+SISTEMA PROPUESTO
+============================================================
+
+El sistema se compone de canal comercial, agente IA, CRM, pipeline, tablero de métricas y seguimiento inicial.
+
+Incluye:
+
+1. Canal comercial principal
+Canal incluido: [CANAL PRINCIPAL]
+
+2. Agente IA comercial core
+El agente podrá:
+- Responder en tiempo real.
+- Orientar al prospecto.
+- Recopilar información clave.
+- Hacer preguntas de calificación.
+- Identificar intención de compra.
+- Guiar al siguiente paso.
+- Transferir a humano cuando aplique.
+- Registrar información en CRM.
+
+3. Flujo principal de conversión
+Incluye:
+- Entrada del prospecto.
+- Respuesta inmediata.
+- Captura de datos.
+- Calificación inicial.
+- Segmentación básica.
+- Agendamiento o siguiente paso.
+- Registro en CRM.
+- Seguimiento si no responde.
+- Transferencia a humano con resumen.
+- Estado actualizado en tablero.
+
+4. Base de conocimiento comercial
+Incluye:
+- Servicios principales.
+- Preguntas frecuentes.
+- Criterios de calificación.
+- Objeciones comunes.
+- Tono de marca.
+- Reglas de transferencia.
+- Casos donde el agente no debe responder.
+- Políticas comerciales básicas.
+- Información comercial aprobada.
+
+5. CRM configurado
+Incluye:
+- Pipeline personalizado de hasta 6 etapas.
+- Creación o actualización automática de contactos.
+- Fuente de entrada.
+- Estado de oportunidad.
+- Notas principales.
+- Asignación o notificación al equipo.
+- Etiquetas básicas.
+- Seguimiento por etapa.
+
+6. Tablero KPI core
+Incluye:
+- Oportunidades recibidas.
+- Tiempo de respuesta.
+- Conversaciones gestionadas.
+- Oportunidades calificadas.
+- Oportunidades no calificadas.
+- Citas generadas.
+- Transferencias a humano.
+- Oportunidades por etapa.
+- Canal de origen.
+- Tasa de avance entre etapas.
+
+7. Seguimiento básico
+Incluye hasta 2 secuencias simples de seguimiento:
+- Seguimiento si el prospecto no responde.
+- Recordatorio para completar información.
+- Recordatorio de cita o próximo paso.
+- Aviso al equipo si requiere intervención.
+
+8. Agendamiento básico
+Puede operar mediante:
+- Calendario de GoHighLevel.
+- Google Calendar.
+- Calendly.
+- Agenda interna conectada.
+
+9. QA y monitoreo
+Incluye:
+- QA semanal durante el primer mes.
+- QA quincenal desde el segundo mes.
+- Revisión de conversaciones.
+- Detección de errores.
+- Ajuste de respuestas.
+- Revisión de etapas del CRM.
+- Validación de funcionamiento del flujo.
+- Recomendaciones de mejora.
+
+10. Ajustes incluidos
+Incluye 2 ajustes menores mensuales.
+
+11. Capacidad incluida
+Hasta 500 conversaciones comerciales mensuales.
+
+
+============================================================
+INVERSIÓN
+============================================================
+
+Primer pago: $2,500
+
+Incluye:
+- Activación.
+- Configuración core.
+- Implementación base de Control del Instante™.
+- Primer ciclo operativo incluido.
+
+Continuidad operativa desde el mes 2: $900/mes
+
+Permanencia mínima: 3 meses
+
+Distribución:
+Mes 1: $2,500
+Mes 2: $900
+Mes 3: $900
+
+Total mínimo del programa: $4,300
+
+Excedentes:
+- 500 conversaciones comerciales incluidas al mes.
+- Bloque adicional de 500 conversaciones: $250.
+
+
+============================================================
+POR QUÉ ESTA INVERSIÓN TIENE SENTIDO
+============================================================
+
+Launch no se evalúa contra el costo de una herramienta. Se evalúa contra el valor de tener un canal comercial operando con más velocidad, orden y trazabilidad.
+
+Si [NOMBRE DE LA EMPRESA] ya genera oportunidades, pero parte de esas conversaciones quedan sin calificación, sin seguimiento o sin registro claro, la inversión se justifica al instalar un estándar operativo que reduzca fricción comercial desde el primer contacto.
+
+El objetivo no es agregar complejidad. Es crear una base comercial que pueda medirse, corregirse y escalarse.
+
+
+============================================================
+RESULTADO OPERATIVO ESPERADO
+============================================================
+
+Al finalizar la implementación, [NOMBRE DE LA EMPRESA] tendrá un sistema core para responder, calificar, agendar de forma básica, registrar y dar seguimiento inicial a oportunidades desde su canal principal.
+
+============================================================
+GARANTÍA TÉCNICA DE OPERACIÓN
+============================================================
+
+Estratego garantiza que el flujo aprobado ejecutará el estándar técnico acordado durante las primeras 4 semanas de operación.
+
+Si algún componente del flujo aprobado no funciona conforme al estándar pactado, Estratego corregirá sin costo adicional hasta alcanzar el funcionamiento técnico comprometido.
+
+Esta garantía cubre funcionamiento técnico. No promete ventas, ingresos, cierres, volumen de oportunidades ni resultados comerciales específicos, ya que estos dependen también del volumen real de solicitudes, oferta, reputación, precios, capacidad operativa y decisiones internas de [NOMBRE DE LA EMPRESA].
+
+
+============================================================
+ALCANCE Y EXPANSIÓN DEL SISTEMA
+============================================================
+
+Esta propuesta contempla la implementación descrita para el plan seleccionado. El sistema se construye sobre los canales, flujos, agentes, capacidad mensual y componentes aquí definidos.
+
+Si [NOMBRE DE LA EMPRESA] requiere ampliar el sistema con canales adicionales, nuevos flujos, integraciones avanzadas, módulos personalizados, mayor capacidad de conversaciones o desarrollos fuera del alcance inicial, Estratego podrá presentar una ampliación de alcance con inversión y tiempos definidos.
+
+Esto permite mantener una implementación ordenada, medible y alineada con el objetivo principal del programa.
+
+
+============================================================
+CONDICIONES COMERCIALES CLAVE
+============================================================
+
+1. La implementación depende de la entrega completa de accesos, información operativa, reglas comerciales y aprobaciones necesarias por parte de [NOMBRE DE LA EMPRESA].
+
+2. Los costos de plataformas externas no están incluidos salvo acuerdo escrito distinto. Esto puede incluir GoHighLevel, Meta, WhatsApp Business API, OpenAI, Stripe, dominios, correos, herramientas de conexión u otros proveedores.
+
+3. Cambios fuera del alcance aprobado inicialmente podrán incorporarse mediante una ampliación de alcance.
+
+4. [NOMBRE DE LA EMPRESA] conserva la propiedad de sus datos, contactos, conversaciones e historial comercial.
+
+5. Estratego conserva la propiedad intelectual sobre su metodología, arquitectura, flujos, prompts, lógica operativa, criterios de configuración y documentación interna.
+
+6. Esta propuesta es confidencial y no debe compartirse con terceros sin autorización escrita de Estratego.
+
+
+============================================================
+DECISIÓN RECOMENDADA
+============================================================
+
+La decisión no es si [NOMBRE DE LA EMPRESA] debe usar inteligencia artificial.
+
+La decisión es si va a seguir dependiendo de respuesta manual, seguimiento irregular y registros incompletos, o si va a instalar un estándar comercial que le permita operar con más velocidad, orden y trazabilidad.
+
+Si la prioridad es vender mejor con las oportunidades que ya existen, el siguiente paso es aprobar esta propuesta, realizar el primer pago y agendar el onboarding operativo.
+
+
+============================================================
+PRÓXIMOS PASOS
+============================================================
+
+1. Aprobar la propuesta.
+2. Realizar el primer pago correspondiente.
+3. Agendar sesión de onboarding operativo.
+4. Entregar accesos, reglas comerciales, preguntas frecuentes, servicios, políticas y materiales requeridos.
+5. Aprobar el flujo operativo inicial.
+6. Iniciar implementación y puesta en operación según el alcance acordado.
+
+
+============================================================
+ACEPTACIÓN
+============================================================
+
+Al aprobar esta propuesta y realizar el primer pago, [NOMBRE DE LA EMPRESA] confirma que entiende y acepta el alcance, inversión, condiciones y criterios comerciales aquí descritos.
+
+Cliente:
+Nombre: [NOMBRE DEL CLIENTE]
+Empresa: [NOMBRE DE LA EMPRESA]
+Firma: _______________________________
+Fecha: _______________________________
+
+Estratego:
+Luis Posada
+Business AI Architect · Fundador de Estratego
+estratego.us
+
+============================================================
+FIN DE LA PROPUESTA
+============================================================

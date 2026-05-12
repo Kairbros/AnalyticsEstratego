@@ -1,0 +1,267 @@
+ESTRATEGO
+Business AI Architecture · Florida, United States
+estratego.us
+
+PROPUESTA COMERCIAL DE IMPLEMENTACIÓN
+Control del Instante™
+
+Plan presentado: STARTER
+Nombre comercial: Activación Inicial de Control Comercial
+
+Preparado para: [NOMBRE DEL CLIENTE]
+Empresa: [NOMBRE DE LA EMPRESA]
+Preparado por: Luis Posada
+Business AI Architect · Fundador de Estratego
+Fecha: [FECHA]
+Vigencia: [48 HORAS / 7 DÍAS]
+Documento confidencial
+
+============================================================
+RESUMEN EJECUTIVO
+============================================================
+
+[NOMBRE DEL CLIENTE], esta propuesta presenta una primera capa de control comercial para [NOMBRE DE LA EMPRESA].
+
+Hoy, una oportunidad no se pierde únicamente cuando el cliente dice “no”. También se pierde cuando entra por [CANAL PRINCIPAL], no recibe una respuesta clara, no se documenta, no se clasifica y no llega al equipo con el contexto correcto.
+
+La Activación Inicial de Control Comercial instala una base operativa para que cada oportunidad del canal principal quede respondida, organizada, registrada y lista para seguimiento.
+
+Este programa no busca reemplazar al equipo. Busca quitar fricción al inicio del proceso comercial para que el equipo reciba conversaciones más claras, más ordenadas y más accionables.
+
+
+============================================================
+EL COSTO DE SEGUIR IGUAL
+============================================================
+
+Cuando el proceso depende únicamente de respuesta manual, el negocio queda expuesto a tres fugas silenciosas:
+
+1. Fuga de atención:
+El prospecto escribe, pero la respuesta no llega con suficiente claridad o continuidad.
+
+2. Fuga de información:
+El equipo recibe mensajes, pero no siempre quedan los datos mínimos para saber quién es el prospecto, qué necesita y qué debe pasar después.
+
+3. Fuga de control:
+Las oportunidades quedan dispersas en conversaciones, memoria humana o seguimientos informales.
+
+El problema no es solo responder. El problema es no tener una primera capa que convierta cada conversación en información comercial útil.
+
+
+============================================================
+OBJETIVO DEL PROGRAMA
+============================================================
+
+Instalar una estructura inicial para que [NOMBRE DE LA EMPRESA] pueda:
+
+- Responder de forma más ordenada desde [CANAL PRINCIPAL].
+- Capturar datos básicos del prospecto.
+- Identificar si la oportunidad califica.
+- Registrar la conversación en CRM.
+- Entregar contexto al equipo.
+- Empezar a medir el flujo comercial desde el primer canal.
+
+El resultado esperado es una operación más clara: menos conversaciones sueltas, menos información perdida y más control sobre las oportunidades que ya llegan.
+
+
+============================================================
+SISTEMA PROPUESTO
+============================================================
+
+El sistema se compone de una primera capa de captura, clasificación y registro comercial.
+
+Incluye:
+
+1. Canal comercial principal
+Canal incluido: [CANAL PRINCIPAL]
+
+Este plan opera sobre un solo canal para mantener foco, velocidad de implementación y claridad operativa.
+
+2. Flujo comercial base
+Se construirá un flujo para:
+- Respuesta inicial.
+- Identificación del prospecto.
+- Captura de datos principales.
+- Preguntas básicas de calificación.
+- Clasificación inicial.
+- Registro en CRM.
+- Aviso o transferencia al equipo cuando aplique.
+
+3. Agente IA limitado
+El agente podrá:
+- Responder preguntas frecuentes.
+- Recopilar información básica.
+- Guiar al prospecto al siguiente paso.
+- Evitar respuestas fuera del alcance.
+- Transferir al equipo cuando el caso requiera intervención humana.
+
+Este agente no improvisa libremente. Opera con información, límites y reglas aprobadas por [NOMBRE DE LA EMPRESA].
+
+4. Base de conocimiento inicial
+Incluye organización básica de:
+- Servicios principales.
+- Horarios.
+- Zonas de atención.
+- Preguntas frecuentes.
+- Criterios básicos de calificación.
+- Instrucciones de transferencia.
+- Políticas comerciales básicas.
+- Tono de comunicación.
+
+5. CRM básico
+Incluye:
+- Pipeline simple de hasta 5 etapas.
+- Contacto registrado automáticamente.
+- Estado del prospecto.
+- Fuente de entrada.
+- Notas principales.
+- Notificación o asignación básica al equipo.
+
+6. Tablero KPI básico
+Incluye:
+- Solicitudes recibidas.
+- Conversaciones gestionadas.
+- Leads calificados.
+- Leads no calificados.
+- Acciones generadas.
+- Transferencias a humano.
+- Estado de oportunidades.
+
+7. QA básico mensual
+Incluye una revisión mensual del flujo aprobado para identificar errores, respuestas que deben ajustarse y oportunidades de mejora dentro del alcance contratado.
+
+8. Ajustes incluidos
+Incluye 1 ajuste menor mensual.
+
+9. Capacidad incluida
+Hasta 250 conversaciones comerciales mensuales.
+
+
+============================================================
+INVERSIÓN
+============================================================
+
+Primer pago: $900
+
+Incluye:
+- Activación inicial.
+- Configuración base.
+- Primer ciclo operativo incluido.
+
+Continuidad operativa desde el mes 2: $600/mes
+
+Permanencia mínima: 6 meses
+
+Distribución:
+Mes 1: $900
+Mes 2: $600
+Mes 3: $600
+Mes 4: $600
+Mes 5: $600
+Mes 6: $600
+
+Total mínimo del programa: $3,900
+
+Excedentes:
+- 250 conversaciones comerciales incluidas al mes.
+- Bloque adicional de 250 conversaciones: $150.
+
+
+============================================================
+POR QUÉ ESTA INVERSIÓN TIENE SENTIDO
+============================================================
+
+Esta inversión no debe evaluarse como un gasto técnico. Debe evaluarse como la instalación de una primera capa de control comercial.
+
+Si el negocio ya genera conversaciones, pero parte de esas oportunidades quedan sin ordenar, sin registrar o sin seguimiento claro, el costo real no está en implementar el sistema. El costo real está en seguir operando sin visibilidad.
+
+Starter es el punto de entrada para comenzar a controlar el canal principal sin construir todavía una arquitectura completa.
+
+
+============================================================
+RESULTADO OPERATIVO ESPERADO
+============================================================
+
+Al finalizar la implementación, [NOMBRE DE LA EMPRESA] tendrá una primera capa de control comercial para que cada oportunidad del canal principal quede respondida, organizada, registrada y lista para seguimiento.
+
+============================================================
+GARANTÍA TÉCNICA DE OPERACIÓN
+============================================================
+
+Estratego garantiza que el flujo aprobado ejecutará el estándar técnico acordado durante las primeras 4 semanas de operación.
+
+Si algún componente del flujo aprobado no funciona conforme al estándar pactado, Estratego corregirá sin costo adicional hasta alcanzar el funcionamiento técnico comprometido.
+
+Esta garantía cubre funcionamiento técnico. No promete ventas, ingresos, cierres, volumen de oportunidades ni resultados comerciales específicos, ya que estos dependen también del volumen real de solicitudes, oferta, reputación, precios, capacidad operativa y decisiones internas de [NOMBRE DE LA EMPRESA].
+
+
+============================================================
+ALCANCE Y EXPANSIÓN DEL SISTEMA
+============================================================
+
+Esta propuesta contempla la implementación descrita para el plan seleccionado. El sistema se construye sobre los canales, flujos, agentes, capacidad mensual y componentes aquí definidos.
+
+Si [NOMBRE DE LA EMPRESA] requiere ampliar el sistema con canales adicionales, nuevos flujos, integraciones avanzadas, módulos personalizados, mayor capacidad de conversaciones o desarrollos fuera del alcance inicial, Estratego podrá presentar una ampliación de alcance con inversión y tiempos definidos.
+
+Esto permite mantener una implementación ordenada, medible y alineada con el objetivo principal del programa.
+
+
+============================================================
+CONDICIONES COMERCIALES CLAVE
+============================================================
+
+1. La implementación depende de la entrega completa de accesos, información operativa, reglas comerciales y aprobaciones necesarias por parte de [NOMBRE DE LA EMPRESA].
+
+2. Los costos de plataformas externas no están incluidos salvo acuerdo escrito distinto. Esto puede incluir GoHighLevel, Meta, WhatsApp Business API, OpenAI, Stripe, dominios, correos, herramientas de conexión u otros proveedores.
+
+3. Cambios fuera del alcance aprobado inicialmente podrán incorporarse mediante una ampliación de alcance.
+
+4. [NOMBRE DE LA EMPRESA] conserva la propiedad de sus datos, contactos, conversaciones e historial comercial.
+
+5. Estratego conserva la propiedad intelectual sobre su metodología, arquitectura, flujos, prompts, lógica operativa, criterios de configuración y documentación interna.
+
+6. Esta propuesta es confidencial y no debe compartirse con terceros sin autorización escrita de Estratego.
+
+
+============================================================
+DECISIÓN RECOMENDADA
+============================================================
+
+La decisión no es si [NOMBRE DE LA EMPRESA] debe usar inteligencia artificial.
+
+La decisión es si va a seguir dependiendo de respuesta manual, seguimiento irregular y registros incompletos, o si va a instalar un estándar comercial que le permita operar con más velocidad, orden y trazabilidad.
+
+Si la prioridad es vender mejor con las oportunidades que ya existen, el siguiente paso es aprobar esta propuesta, realizar el primer pago y agendar el onboarding operativo.
+
+
+============================================================
+PRÓXIMOS PASOS
+============================================================
+
+1. Aprobar la propuesta.
+2. Realizar el primer pago correspondiente.
+3. Agendar sesión de onboarding operativo.
+4. Entregar accesos, reglas comerciales, preguntas frecuentes, servicios, políticas y materiales requeridos.
+5. Aprobar el flujo operativo inicial.
+6. Iniciar implementación y puesta en operación según el alcance acordado.
+
+
+============================================================
+ACEPTACIÓN
+============================================================
+
+Al aprobar esta propuesta y realizar el primer pago, [NOMBRE DE LA EMPRESA] confirma que entiende y acepta el alcance, inversión, condiciones y criterios comerciales aquí descritos.
+
+Cliente:
+Nombre: [NOMBRE DEL CLIENTE]
+Empresa: [NOMBRE DE LA EMPRESA]
+Firma: _______________________________
+Fecha: _______________________________
+
+Estratego:
+Luis Posada
+Business AI Architect · Fundador de Estratego
+estratego.us
+
+============================================================
+FIN DE LA PROPUESTA
+============================================================

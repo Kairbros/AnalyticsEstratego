@@ -39,4 +39,12 @@ app.use((err, _req, res, _next) => {
 const PORT = Number(process.env.PORT) || 3001;
 app.listen(PORT, () => {
   console.log(`[api] escuchando en http://localhost:${PORT}`);
+  const k = process.env.OPENAI_API_KEY || '';
+  console.log(
+    '[env] OPENAI_API_KEY:',
+    k ? `${k.slice(0, 8)}…${k.slice(-4)} (len ${k.length})` : 'NO configurada',
+  );
+  console.log('[env] OPENAI_MODEL:', process.env.OPENAI_MODEL || '(default)');
+  console.log('[env] SMTP_USER:', process.env.SMTP_USER || 'NO configurado');
+  console.log('[env] FRONTEND_URL:', process.env.FRONTEND_URL || '(default)');
 });

@@ -2,8 +2,8 @@ import { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -16,8 +16,12 @@ const COLORS = {
   gold: '#e9c158',
   success: '#34d399',
   danger: '#f87171',
+  warning: '#f59e0b',
   axis: '#64748b',
   grid: '#2a2a3f',
+  ink: '#08080f',
+  panel: '#13131f',
+  border: '#2a2a3f',
 };
 
 const TOOLTIP_STYLE = {
@@ -39,47 +43,227 @@ const fmtUSD = (n) =>
 const fmtNum = (n) =>
   new Intl.NumberFormat('es-CO').format(Math.round(Number.isFinite(+n) ? +n : 0));
 
+const MES_NOMBRES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
 function sanitizarNombreArchivo(s) {
   return String(s || '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-zA-Z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '')
     .toLowerCase() || 'diagnostico';
 }
 
-function Card({ titulo, descripcion, children }) {
+function SeccionNumerada({ numero, titulo, descripcion, tono = 'gold', children, className = '' }) {
+  const tonos = {
+    gold: 'bg-estratego-gold text-estratego-ink',
+    success: 'bg-estratego-success text-estratego-ink',
+    danger: 'bg-estratego-danger text-estratego-ink',
+    warning: 'bg-amber-500 text-estratego-ink',
+    slate: 'bg-slate-600 text-slate-100',
+  };
   return (
-    <section className="card">
-      <header className="mb-4">
-        <h3 className="font-display text-lg font-semibold text-slate-100">
-          {titulo}
-        </h3>
-        {descripcion && (
-          <p className="text-sm text-slate-400 mt-1">{descripcion}</p>
-        )}
+    <section className={`card h-full flex flex-col ${className}`}>
+      <header className="mb-4 flex items-start gap-3">
+        <span className={`shrink-0 flex items-center justify-center w-7 h-7 rounded-md font-display font-bold text-sm leading-none ${tonos[tono] || tonos.gold}`}>
+          <span className="block leading-none translate-y-px">{numero}</span>
+        </span>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display text-base md:text-lg font-semibold text-slate-100 uppercase tracking-wide">
+            {titulo}
+          </h3>
+          {descripcion && (
+            <p className="text-sm text-slate-400 mt-0.5">{descripcion}</p>
+          )}
+        </div>
       </header>
-      {children}
+      <div className="flex-1 flex flex-col">{children}</div>
     </section>
   );
 }
 
-function KPI({ label, valor, tono = 'gold' }) {
-  const tonos = {
-    gold: 'text-estratego-gold',
-    success: 'text-estratego-success',
-    danger: 'text-estratego-danger',
+function IconoCirculo({ children, tono = 'gold' }) {
+  const fondos = {
+    gold: 'bg-estratego-gold/15 border-estratego-gold/30 text-estratego-gold',
+    success: 'bg-estratego-success/15 border-estratego-success/30 text-estratego-success',
+    danger: 'bg-estratego-danger/15 border-estratego-danger/30 text-estratego-danger',
+    indigo: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300',
   };
   return (
-    <div className="card p-4">
-      <p className="text-[10px] uppercase tracking-wider text-slate-400">
-        {label}
-      </p>
-      <p
-        className={`font-display text-2xl font-semibold mt-1 ${tonos[tono] || tonos.gold}`}
-      >
-        {valor}
-      </p>
+    <div className={`shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center ${fondos[tono] || fondos.gold}`}>
+      {children}
+    </div>
+  );
+}
+
+const Icono = {
+  Rayo: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" {...props}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor" />
+    </svg>
+  ),
+  Calendario: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" {...props}>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  Usuarios: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" {...props}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  Diana: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  ),
+  Alerta: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" {...props}>
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  ),
+  Equis: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" {...props}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  ),
+  Check: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" {...props}>
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  ),
+  Logo: (props) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" {...props}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  ),
+};
+
+function FilaEmbudoActual({ paso, etiqueta, sub, valor, perdida, max, tono }) {
+  const ancho = max > 0 ? Math.max(2, (Number(valor) / max) * 100) : 2;
+  const fondoBarra = {
+    gold: 'bg-estratego-gold',
+    warning: 'bg-amber-500',
+    danger: 'bg-estratego-danger',
+  };
+  return (
+    <div className="grid grid-cols-12 items-center gap-2 py-1.5">
+      <div className="col-span-1 flex justify-center">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-estratego-border text-slate-300 text-[11px] font-semibold">
+          {paso}
+        </span>
+      </div>
+      <div className="col-span-4">
+        <p className="text-[11px] uppercase tracking-wider text-slate-300 font-semibold leading-tight">
+          {etiqueta}
+        </p>
+        <p className="text-[10px] text-slate-500 leading-tight">{sub}</p>
+      </div>
+      <div className="col-span-4">
+        <div className="relative h-7 bg-estratego-border/40 rounded overflow-hidden">
+          <div
+            className={`absolute inset-y-0 left-0 rounded ${fondoBarra[tono] || fondoBarra.gold}`}
+            style={{ width: `${ancho}%` }}
+          />
+          <div className="absolute inset-0 flex items-center justify-end pr-2">
+            <span className="text-xs font-bold text-slate-100 drop-shadow">{fmtNum(valor)}</span>
+          </div>
+        </div>
+      </div>
+      <div className="col-span-3 text-right text-[11px]">
+        {perdida ? (
+          <>
+            <p className="text-slate-400">{perdida.label}</p>
+            <p className="text-estratego-danger font-semibold">{fmtUSD(-perdida.usd).replace('-', '−')}</p>
+          </>
+        ) : (
+          <p className="text-slate-500">—</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FilaRecuperable({ icono, titulo, sub, valor, acumulado, max }) {
+  const ancho = max > 0 ? Math.max(10, (Number(valor) / max) * 100) : 10;
+  return (
+    <div className="py-2">
+      <div className="flex items-start gap-3">
+        <IconoCirculo tono="gold">{icono}</IconoCirculo>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-sm text-slate-200 font-semibold leading-tight">
+              {titulo}
+            </p>
+            <p className="text-sm text-estratego-success font-bold whitespace-nowrap">
+              +{fmtUSD(valor)}<span className="text-slate-400 font-normal text-xs"> /mes</span>
+            </p>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-tight">{sub}</p>
+          <div className="relative h-2 bg-estratego-border/40 rounded-full mt-2">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-estratego-gold"
+              style={{ width: `${ancho}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-slate-500 mt-1 text-right">
+            Acumulado: {fmtUSD(acumulado)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FilaEmbudoCompacta({ pct, etiqueta, valor, max, tono }) {
+  const ancho = max > 0 ? Math.max(8, (Number(valor) / max) * 100) : 8;
+  const colores = {
+    actual: 'bg-slate-500/70',
+    optimizado: 'bg-estratego-gold/80',
+  };
+  return (
+    <div className="grid grid-cols-12 items-center gap-2 py-1">
+      <div className="col-span-2 text-right text-[11px] text-slate-400 font-mono">{pct}%</div>
+      <div className="col-span-7 relative h-7 bg-estratego-border/30 rounded overflow-hidden border border-estratego-border/40">
+        <div
+          className={`absolute inset-y-0 left-0 ${colores[tono]}`}
+          style={{ width: `${ancho}%` }}
+        />
+        <span className="relative z-10 h-full flex items-center px-2 text-[11px] text-slate-100 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+          {etiqueta}
+        </span>
+      </div>
+      <div className="col-span-3 text-right text-sm font-semibold text-slate-100">{fmtNum(valor)}</div>
+    </div>
+  );
+}
+
+function PersonasGrid({ totalNoResponden = 30, total = 100 }) {
+  const cols = 20;
+  const rows = total / cols;
+  return (
+    <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+      {Array.from({ length: total }).map((_, i) => {
+        const esRojo = i < totalNoResponden;
+        return (
+          <span
+            key={i}
+            className={`block w-3 h-4 rounded-sm ${esRojo ? 'bg-estratego-danger' : 'bg-slate-600'}`}
+            title={esRojo ? 'No responde' : 'Responde'}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -87,6 +271,7 @@ function KPI({ label, valor, tono = 'gold' }) {
 export default function ResultadosDiagnostico({
   resultados,
   diagnosticoId,
+  nombreDiagnostico,
   cliente,
   fecha,
 }) {
@@ -100,26 +285,116 @@ export default function ResultadosDiagnostico({
   const fuga = resultados.fuga_capital;
   const roi = resultados.roi;
 
-  const embudoData = [
-    { etapa: 'Leads', valor: embudo.leads },
-    { etapa: 'Contactados', valor: embudo.contactados },
-    { etapa: 'Reuniones', valor: embudo.reuniones },
-    { etapa: 'Asistidas', valor: embudo.asistidas },
-    { etapa: 'Ventas', valor: embudo.ventas },
-  ];
+  const maxEmbudo = Math.max(
+    embudo.leads,
+    embudo.contactados,
+    embudo.reuniones,
+    embudo.asistidas,
+    embudo.ventas,
+    1,
+  );
+  const maxOpt = Math.max(
+    opt.leads,
+    opt.contactados,
+    opt.reuniones,
+    opt.asistidas,
+    opt.ventas,
+    1,
+  );
+  const maxComparativo = Math.max(maxEmbudo, maxOpt, 1);
 
-  const comparativoData = [
-    { etapa: 'Leads', actual: embudo.leads, optimizado: opt.leads },
-    { etapa: 'Contactados', actual: embudo.contactados, optimizado: opt.contactados },
-    { etapa: 'Reuniones', actual: embudo.reuniones, optimizado: opt.reuniones },
-    { etapa: 'Asistidas', actual: embudo.asistidas, optimizado: opt.asistidas },
-    { etapa: 'Ventas', actual: embudo.ventas, optimizado: opt.ventas },
-  ];
+  const ticket = embudo.leads
+    ? Math.round(embudo.ingresos_mes / Math.max(1, embudo.ventas)) || 0
+    : 0;
+  const perdidaPorNoResponder = fuga.fuga_por_no_responder_mes || 0;
+  const sinAgendar = Math.max(0, embudo.contactados - embudo.reuniones);
+  const noShow = Math.max(0, embudo.reuniones - embudo.asistidas);
+  const sinCerrar = Math.max(0, embudo.asistidas - embudo.ventas);
+  const usdPorVenta = ticket;
+  const perdSinAgendar = sinAgendar * usdPorVenta * (embudo.ventas / Math.max(1, embudo.contactados));
+  const perdNoShow = noShow * usdPorVenta * (embudo.ventas / Math.max(1, embudo.reuniones));
+  const perdSinCerrar = sinCerrar * usdPorVenta;
 
-  const fugaData = [
-    { concepto: 'Leads no respondidos', valor: fuga.fuga_por_no_responder_mes },
-    { concepto: 'Ventas perdidas declaradas', valor: fuga.fuga_declarada_mes },
+  const noRespondenPct = embudo.leads
+    ? Math.round(((embudo.leads - embudo.contactados) / embudo.leads) * 100)
+    : 0;
+
+  const factorMejora = embudo.ventas > 0 && opt.ventas > 0
+    ? +(opt.ventas / embudo.ventas).toFixed(1)
+    : null;
+  const factorAbs = embudo.ventas === 0 && opt.ventas > 0 ? Math.round(opt.ventas) : null;
+
+  const ingresosActuales = embudo.ingresos_mes || 0;
+  const ingresosOpt = opt.ingresos_mes || 0;
+  // Usamos la proyección del backend que ya incluye ramp-up ease-out:
+  // los primeros meses la mejora es parcial, alcanza el potencial completo
+  // alrededor del mes 6. Acumulamos para mostrar como curva de ingresos
+  // totales acumulados año a año.
+  const proyeccionBackend = Array.isArray(resultados.proyeccion_12m)
+    ? resultados.proyeccion_12m
+    : [];
+  let acumActual = 0;
+  let acumPlan = 0;
+  const proyeccionData = (
+    proyeccionBackend.length === 12
+      ? proyeccionBackend.map((p) => {
+          acumActual += ingresosActuales;
+          acumPlan += p.con_plan;
+          return {
+            mes: p.etiqueta || MES_NOMBRES[p.mes - 1] || `M${p.mes}`,
+            actual: Math.round(acumActual),
+            optimizado: Math.round(acumPlan),
+          };
+        })
+      : MES_NOMBRES.map((m, i) => ({
+          mes: m,
+          actual: Math.round(ingresosActuales * (i + 1)),
+          optimizado: Math.round(ingresosOpt * (i + 1)),
+        }))
+  );
+
+  const penalizacionPct = opt.penalizacion_tiempo_respuesta_pct || 0;
+  const tiempoRespMin = opt.tiempo_respuesta_min || 0;
+
+  // Se reporta el payback siempre en meses (con un decimal). Mostrar días
+  // no era realista — un sistema con ramp-up no se paga en horas.
+  const mesesRecuperacion = roi.meses_recuperacion != null
+    ? Math.max(0.5, Number(roi.meses_recuperacion))
+    : null;
+
+  const recuperablesData = [
+    {
+      icono: <Icono.Rayo />,
+      titulo: 'Responder a tiempo (menos de 60 seg.)',
+      sub: 'Más leads calientes convertidos',
+      valor: perdidaPorNoResponder,
+    },
+    {
+      icono: <Icono.Calendario />,
+      titulo: 'Agendar más reuniones calificadas',
+      sub: 'Calificación automática + scripts',
+      valor: perdSinAgendar,
+    },
+    {
+      icono: <Icono.Usuarios />,
+      titulo: 'Aumentar asistencia a reuniones',
+      sub: 'Recordatorios + confirmaciones',
+      valor: perdNoShow,
+    },
+    {
+      icono: <Icono.Diana />,
+      titulo: 'Cerrar más ventas',
+      sub: 'Seguimiento inteligente + objeciones',
+      valor: perdSinCerrar,
+    },
   ];
+  const maxRecuperable = Math.max(...recuperablesData.map((r) => r.valor), 1);
+  let acum = 0;
+  const recuperablesConAcum = recuperablesData.map((r) => {
+    acum += r.valor;
+    return { ...r, acumulado: acum };
+  });
+  const totalRecuperable = acum;
 
   async function descargarPDF() {
     const nodo = reporteRef.current;
@@ -128,29 +403,24 @@ export default function ResultadosDiagnostico({
     try {
       const canvas = await html2canvas(nodo, {
         scale: 2,
-        backgroundColor: '#08080f',
+        backgroundColor: COLORS.ink,
         useCORS: true,
         logging: false,
         windowWidth: nodo.scrollWidth,
       });
-
-      const pdfWidth = 210; // A4 width in mm
+      const pdfWidth = 210;
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
       const pdf = new jsPDF({
         orientation: pdfHeight >= pdfWidth ? 'p' : 'l',
         unit: 'mm',
         format: [pdfWidth, pdfHeight],
       });
-
       const imgData = canvas.toDataURL('image/png');
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-
-      const slug = sanitizarNombreArchivo(cliente?.nombre);
-      const nombre = diagnosticoId
-        ? `diagnostico_${diagnosticoId}_${slug}.pdf`
-        : `diagnostico_${slug}.pdf`;
-      pdf.save(nombre);
+      const nombreArchivo = nombreDiagnostico?.trim()
+        ? sanitizarNombreArchivo(nombreDiagnostico)
+        : 'diagnostico';
+      pdf.save(`${nombreArchivo}.pdf`);
     } finally {
       setExportando(false);
     }
@@ -167,207 +437,292 @@ export default function ResultadosDiagnostico({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
-        <button
-          type="button"
-          onClick={descargarPDF}
-          disabled={exportando}
-          className="btn-gold"
-        >
+        <button type="button" onClick={descargarPDF} disabled={exportando} className="btn-gold">
           {exportando ? 'Generando PDF…' : 'Descargar PDF'}
         </button>
       </div>
 
-      <div
-        ref={reporteRef}
-        className="space-y-6 p-4 rounded-2xl"
-        style={{ backgroundColor: '#08080f' }}
-      >
+      <div ref={reporteRef} className="space-y-4 p-4 rounded-2xl" style={{ backgroundColor: COLORS.ink }}>
+        {/* HEADER */}
         <section className="card">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-estratego-gold">
-                AnalyticsEstratego
-              </p>
-              <h2 className="font-display text-2xl font-semibold text-slate-100 mt-1">
-                Diagnóstico comercial
-                {diagnosticoId ? ` #${diagnosticoId}` : ''}
-              </h2>
-              {cliente?.nombre && (
-                <p className="text-sm text-slate-300 mt-2">
-                  <span className="text-slate-400">Cliente:</span>{' '}
-                  <span className="font-medium">{cliente.nombre}</span>
-                  {cliente.empresa ? ` — ${cliente.empresa}` : ''}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-estratego-gold/15 border border-estratego-gold/30 flex items-center justify-center text-estratego-gold">
+                <Icono.Logo className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-estratego-gold leading-none">AnalyticsEstratego</p>
+                <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
+                  {diagnosticoId ? `Diagnóstico #${diagnosticoId}` : ''}
                 </p>
-              )}
-              {cliente?.email && (
-                <p className="text-xs text-slate-400 font-mono mt-0.5">
-                  {cliente.email}
-                </p>
-              )}
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] uppercase tracking-wider text-slate-400">
-                Fecha
+            <div className="text-center flex-1 min-w-[200px]">
+              <h2 className="font-display text-xl md:text-2xl font-bold text-slate-100 tracking-wide">
+                {nombreDiagnostico?.trim() || 'DIAGNÓSTICO COMERCIAL'}
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5 uppercase tracking-wider">
+                Tu negocio hoy vs. tu negocio optimizado
               </p>
-              <p className="text-sm text-slate-200 mt-1">{fechaTxt}</p>
+            </div>
+            <div className="text-right text-xs text-slate-300">
+              {cliente?.nombre && (
+                <p>
+                  <span className="text-slate-500">Cliente:</span>{' '}
+                  <span className="font-semibold text-slate-100">{cliente.nombre}</span>
+                </p>
+              )}
+              <p>
+                <span className="text-slate-500">Fecha:</span>{' '}
+                <span className="text-slate-100">{fechaTxt}</span>
+              </p>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-4 md:grid-cols-4">
-          <KPI label="Ingresos actuales / mes" valor={fmtUSD(embudo.ingresos_mes)} />
-          <KPI
-            label="Potencial mensual"
-            valor={fmtUSD(opt.ingresos_mes)}
+        {/* SECCIÓN 1: IMPACTO ACTUAL (full width) */}
+        <SeccionNumerada
+          numero="1"
+          tono="danger"
+          titulo="Impacto actual"
+          descripcion="¿Cuánto dinero estás perdiendo cada mes?"
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="font-display text-5xl md:text-6xl font-bold text-estratego-danger leading-none">
+                {fmtUSD(fuga.fuga_mensual)}
+                <span className="text-lg text-slate-400 font-normal ml-2">/ MES</span>
+              </p>
+              <p className="font-display text-2xl font-semibold text-estratego-danger/80 mt-3">
+                {fmtUSD(fuga.fuga_anual)}
+                <span className="text-sm text-slate-400 font-normal ml-2">/ AÑO</span>
+              </p>
+              <p className="text-xs text-slate-400 mt-3 max-w-md flex items-start gap-1.5">
+                <Icono.Alerta className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <span>Dinero que ya generaste, pero que hoy se escapa por fallas en tu proceso comercial.</span>
+              </p>
+            </div>
+            <div className="bg-estratego-ink/60 border border-estratego-border rounded-xl p-4">
+              <p className="text-sm text-slate-200">
+                De cada 100 personas interesadas,{' '}
+                <strong className="text-estratego-danger">{noRespondenPct} NO</strong> reciben respuesta.
+              </p>
+              <div className="my-3">
+                <PersonasGrid totalNoResponden={noRespondenPct} total={100} />
+              </div>
+              <p className="text-[11px] text-slate-400 border-t border-estratego-border pt-2 mt-2 flex items-start gap-1.5">
+                <Icono.Equis className="w-3.5 h-3.5 text-estratego-danger shrink-0 mt-0.5" />
+                <span>{noRespondenPct} oportunidades que se enfrían antes de que puedas hablar con ellas.</span>
+              </p>
+            </div>
+          </div>
+        </SeccionNumerada>
+
+        {/* SECCIONES 2 + 3 lado a lado */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <SeccionNumerada
+            numero="2"
+            tono="warning"
+            titulo="Tu embudo actual"
+            descripcion="Dónde se escapa el dinero"
+          >
+            <div className="flex-1 flex flex-col justify-around gap-1">
+              <FilaEmbudoActual paso="1" etiqueta="Leads que llegan" sub="Personas interesadas" valor={embudo.leads} max={maxEmbudo} tono="gold" />
+              <FilaEmbudoActual paso="2" etiqueta="Respondidos" sub="Respuesta el mismo día" valor={embudo.contactados} max={maxEmbudo} tono="warning" perdida={{ label: `${fmtNum(embudo.leads - embudo.contactados)} sin respuesta`, usd: perdidaPorNoResponder }} />
+              <FilaEmbudoActual paso="3" etiqueta="Reuniones agendadas" sub="Logramos agendar" valor={embudo.reuniones} max={maxEmbudo} tono="warning" perdida={{ label: `${fmtNum(sinAgendar)} sin agendar`, usd: perdSinAgendar }} />
+              <FilaEmbudoActual paso="4" etiqueta="Asisten a la reunión" sub="Se presentan" valor={embudo.asistidas} max={maxEmbudo} tono="danger" perdida={{ label: `${fmtNum(noShow)} no-shows`, usd: perdNoShow }} />
+              <FilaEmbudoActual paso="5" etiqueta="Ventas cerradas" sub="Se convierte en cliente" valor={embudo.ventas} max={maxEmbudo} tono="danger" perdida={{ label: `${fmtNum(sinCerrar)} sin cerrar`, usd: perdSinCerrar }} />
+            </div>
+            <div className="mt-3 bg-estratego-danger/10 border border-estratego-danger/30 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span className="text-[11px] uppercase tracking-wider text-slate-300 font-semibold">Total dinero que se escapa cada mes</span>
+              <span className="text-lg font-bold text-estratego-danger">−{fmtUSD(fuga.fuga_mensual)}</span>
+            </div>
+          </SeccionNumerada>
+
+          <SeccionNumerada
+            numero="3"
             tono="success"
-          />
-          <KPI label="Fuga anual" valor={fmtUSD(fuga.fuga_anual)} tono="danger" />
-          <KPI
-            label="ROI anual Estratego"
-            valor={`${roi.roi_porcentaje}%`}
-            tono={roi.roi_porcentaje >= 0 ? 'success' : 'danger'}
-          />
+            titulo="Lo que puedes recuperar"
+            descripcion="Corrigiendo cada fuga de tu embudo"
+          >
+            <div className="flex-1 flex flex-col justify-around divide-y divide-estratego-border/50">
+              {recuperablesConAcum.map((r) => (
+                <FilaRecuperable
+                  key={r.titulo}
+                  icono={r.icono}
+                  titulo={r.titulo}
+                  sub={r.sub}
+                  valor={r.valor}
+                  acumulado={r.acumulado}
+                  max={maxRecuperable}
+                />
+              ))}
+            </div>
+            <div className="mt-3 bg-estratego-success/10 border border-estratego-success/30 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span className="text-[11px] uppercase tracking-wider text-slate-300 font-semibold">Dinero recuperable cada mes</span>
+              <span className="text-lg font-bold text-estratego-success">+{fmtUSD(totalRecuperable)}</span>
+            </div>
+          </SeccionNumerada>
         </div>
 
-        <Card
-          titulo="Embudo de conversión (mensual)"
-          descripcion={`Tasa global actual: ${embudo.tasa_conversion_global_pct}% · De ${fmtNum(embudo.leads)} leads se cierran ${fmtNum(embudo.ventas)} ventas.`}
+        {/* SECCIÓN 4: COMPARATIVA (full width) */}
+        <SeccionNumerada
+          numero="4"
+          tono="gold"
+          titulo="Comparativa: tu embudo hoy vs. optimizado"
         >
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={embudoData}
-              layout="vertical"
-              margin={{ top: 10, right: 30, left: 40, bottom: 10 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
-              <XAxis
-                type="number"
-                tickFormatter={fmtNum}
-                tick={AXIS_TICK}
-                stroke={COLORS.grid}
-              />
-              <YAxis
-                type="category"
-                dataKey="etapa"
-                width={90}
-                tick={AXIS_TICK}
-                stroke={COLORS.grid}
-              />
-              <Tooltip
-                formatter={(v) => fmtNum(v)}
-                contentStyle={TOOLTIP_STYLE}
-                cursor={{ fill: 'rgba(233,193,88,0.08)' }}
-              />
-              <Bar
-                dataKey="valor"
-                fill={COLORS.gold}
-                radius={[0, 6, 6, 0]}
-                name="Volumen"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card
-          titulo="Fuga de capital mensual"
-          descripcion={`Total mes: ${fmtUSD(fuga.fuga_mensual)} · Total año: ${fmtUSD(fuga.fuga_anual)}. ${fmtNum(fuga.leads_no_respondidos_mes)} leads no se responden el mismo día.`}
-        >
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={fugaData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
-              <XAxis dataKey="concepto" tick={AXIS_TICK} stroke={COLORS.grid} />
-              <YAxis
-                tickFormatter={(v) => `$${fmtNum(v)}`}
-                tick={AXIS_TICK}
-                stroke={COLORS.grid}
-              />
-              <Tooltip
-                formatter={(v) => fmtUSD(v)}
-                contentStyle={TOOLTIP_STYLE}
-                cursor={{ fill: 'rgba(248,113,113,0.08)' }}
-              />
-              <Bar
-                dataKey="valor"
-                fill={COLORS.danger}
-                radius={[6, 6, 0, 0]}
-                name="USD / mes"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card
-          titulo="Escenario actual vs optimizado"
-          descripcion={`Mejora mensual proyectada: ${fmtUSD(opt.mejora_mes)} · Mejora anual: ${fmtUSD(opt.mejora_anual)}`}
-        >
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={comparativoData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
-              <XAxis dataKey="etapa" tick={AXIS_TICK} stroke={COLORS.grid} />
-              <YAxis tickFormatter={fmtNum} tick={AXIS_TICK} stroke={COLORS.grid} />
-              <Tooltip
-                formatter={(v) => fmtNum(v)}
-                contentStyle={TOOLTIP_STYLE}
-                cursor={{ fill: 'rgba(233,193,88,0.08)' }}
-              />
-              <Legend wrapperStyle={{ fontSize: 12, color: '#cbd5e1' }} />
-              <Bar
-                dataKey="actual"
-                fill="#475569"
-                radius={[4, 4, 0, 0]}
-                name="Actual"
-              />
-              <Bar
-                dataKey="optimizado"
-                fill={COLORS.gold}
-                radius={[4, 4, 0, 0]}
-                name="Optimizado"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card titulo="Retorno de inversión con Estratego">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="bg-white/5 border border-estratego-border rounded-xl p-4">
-              <p className="text-[10px] uppercase tracking-wider text-slate-400">
-                Inversión anual Estratego
-              </p>
-              <p className="font-display text-xl font-semibold mt-1 text-slate-100">
-                {fmtUSD(roi.inversion_anual)}
-              </p>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Basado en fee mensual de {fmtUSD(roi.fee_mensual_estratego)}
-              </p>
+          <div className="grid gap-4 md:grid-cols-[1fr,1fr,auto] items-center">
+            <div>
+              <p className="text-center text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-2">Tu embudo hoy</p>
+              <div className="space-y-1">
+                <FilaEmbudoCompacta pct={100} etiqueta="Leads que llegan" valor={embudo.leads} max={maxComparativo} tono="actual" />
+                <FilaEmbudoCompacta pct={Math.round((embudo.contactados / Math.max(1, embudo.leads)) * 100)} etiqueta="Respondidos" valor={embudo.contactados} max={maxComparativo} tono="actual" />
+                <FilaEmbudoCompacta pct={Math.round((embudo.reuniones / Math.max(1, embudo.leads)) * 100)} etiqueta="Reuniones agendadas" valor={embudo.reuniones} max={maxComparativo} tono="actual" />
+                <FilaEmbudoCompacta pct={Math.round((embudo.asistidas / Math.max(1, embudo.leads)) * 100)} etiqueta="Asisten" valor={embudo.asistidas} max={maxComparativo} tono="actual" />
+                <FilaEmbudoCompacta pct={Math.round((embudo.ventas / Math.max(1, embudo.leads)) * 100)} etiqueta="Ventas cerradas" valor={embudo.ventas} max={maxComparativo} tono="actual" />
+              </div>
+              <div className="mt-2 mx-auto w-fit bg-estratego-danger/10 border border-estratego-danger/30 rounded px-3 py-1 text-center">
+                <span className="text-[10px] text-slate-400">Conversión final</span>
+                <span className="ml-2 text-lg font-bold text-estratego-danger">{embudo.tasa_conversion_global_pct}%</span>
+              </div>
             </div>
-            <div className="bg-estratego-success/10 border border-estratego-success/20 rounded-xl p-4">
-              <p className="text-[10px] uppercase tracking-wider text-slate-400">
-                Mejora anual proyectada
-              </p>
-              <p className="font-display text-xl font-semibold text-estratego-success mt-1">
-                {fmtUSD(roi.mejora_anual)}
-              </p>
+
+            <div>
+              <p className="text-center text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-2">Tu embudo optimizado</p>
+              <div className="space-y-1">
+                <FilaEmbudoCompacta pct={100} etiqueta="Leads que llegan" valor={opt.leads} max={maxComparativo} tono="optimizado" />
+                <FilaEmbudoCompacta pct={Math.round((opt.contactados / Math.max(1, opt.leads)) * 100)} etiqueta="Respondidos" valor={opt.contactados} max={maxComparativo} tono="optimizado" />
+                <FilaEmbudoCompacta pct={Math.round((opt.reuniones / Math.max(1, opt.leads)) * 100)} etiqueta="Reuniones agendadas" valor={opt.reuniones} max={maxComparativo} tono="optimizado" />
+                <FilaEmbudoCompacta pct={Math.round((opt.asistidas / Math.max(1, opt.leads)) * 100)} etiqueta="Asisten" valor={opt.asistidas} max={maxComparativo} tono="optimizado" />
+                <FilaEmbudoCompacta pct={Math.round((opt.ventas / Math.max(1, opt.leads)) * 100)} etiqueta="Ventas cerradas" valor={opt.ventas} max={maxComparativo} tono="optimizado" />
+              </div>
+              <div className="mt-2 mx-auto w-fit bg-estratego-success/10 border border-estratego-success/30 rounded px-3 py-1 text-center">
+                <span className="text-[10px] text-slate-400">Conversión final</span>
+                <span className="ml-2 text-lg font-bold text-estratego-success">
+                  {Math.round((opt.ventas / Math.max(1, opt.leads)) * 100)}%
+                </span>
+              </div>
             </div>
-            <div
-              className={`rounded-xl p-4 border ${roi.roi_porcentaje >= 0 ? 'bg-estratego-gold/10 border-estratego-gold/30' : 'bg-estratego-danger/10 border-estratego-danger/30'}`}
-            >
-              <p className="text-[10px] uppercase tracking-wider text-slate-400">
-                ROI anual
+
+            {(factorMejora || factorAbs) && (
+              <div className="text-center px-4">
+                <p className="font-display text-5xl md:text-6xl font-bold text-estratego-gold leading-none">
+                  {factorMejora ? `${factorMejora}X` : `+${factorAbs}`}
+                </p>
+                <p className="text-[11px] uppercase tracking-wider text-slate-300 font-semibold mt-2">
+                  {factorMejora ? 'Más ventas' : 'Ventas nuevas / mes'}
+                </p>
+                <p className="text-[10px] text-slate-500 max-w-[140px] mx-auto mt-1">
+                  {factorMejora ? 'con el mismo número de leads' : 'con el mismo flujo de leads'}
+                </p>
+              </div>
+            )}
+          </div>
+        </SeccionNumerada>
+
+        {/* SECCIONES 5 + 6 lado a lado */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <SeccionNumerada numero="5" tono="gold" titulo="Proyección a 12 meses">
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={proyeccionData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
+                <XAxis dataKey="mes" tick={AXIS_TICK} stroke={COLORS.grid} />
+                <YAxis tickFormatter={(v) => `$${fmtNum(v)}`} tick={AXIS_TICK} stroke={COLORS.grid} />
+                <Tooltip formatter={(v) => fmtUSD(v)} contentStyle={TOOLTIP_STYLE} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Line type="monotone" dataKey="actual" stroke="#94a3b8" strokeWidth={2} dot={{ r: 2 }} name="Ingresos actuales acumulados" />
+                <Line type="monotone" dataKey="optimizado" stroke={COLORS.gold} strokeWidth={3} dot={{ r: 3 }} name="Ingresos optimizados acumulados" />
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="mt-2 bg-estratego-gold/10 border border-estratego-gold/30 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span className="text-[11px] uppercase tracking-wider text-slate-300 font-semibold">Diferencia acumulada en 12 meses</span>
+              <span className="text-base font-bold text-estratego-gold">+{fmtUSD(opt.mejora_anual)}</span>
+            </div>
+            {penalizacionPct > 0 && (
+              <p className="text-[11px] text-estratego-danger bg-estratego-danger/10 border border-estratego-danger/20 rounded-lg px-3 py-2 mt-2">
+                Penalización por velocidad de respuesta ({tiempoRespMin} min):{' '}
+                <strong>−{penalizacionPct}%</strong> sobre el potencial bruto.
               </p>
-              <p
-                className={`font-display text-2xl font-semibold mt-1 ${roi.roi_porcentaje >= 0 ? 'text-estratego-gold' : 'text-estratego-danger'}`}
-              >
-                {roi.roi_porcentaje}%
-              </p>
-              {roi.meses_recuperacion != null && (
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Recuperación en ~{roi.meses_recuperacion} mes
-                  {roi.meses_recuperacion === 1 ? '' : 'es'}
+            )}
+          </SeccionNumerada>
+
+          <SeccionNumerada numero="6" tono="success" titulo="ROI del sistema">
+            <div className="flex-1 flex flex-col justify-center gap-3">
+              <div className="text-center">
+                <p className={`font-display text-5xl md:text-6xl font-bold leading-none ${roi.roi_porcentaje >= 0 ? 'text-estratego-success' : 'text-estratego-danger'}`}>
+                  {roi.roi_porcentaje}%
+                </p>
+                <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-2">Retorno anual</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-estratego-ink/50 border border-estratego-border rounded-lg p-2 text-center">
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+                    Inversión única{roi.plan_recomendado ? ` · ${String(roi.plan_recomendado).toUpperCase()}` : ''}
+                  </p>
+                  <p className="font-display text-lg font-bold text-slate-100">{fmtUSD(roi.inversion_total ?? roi.inversion_anual)}</p>
+                </div>
+                <div className="bg-estratego-success/10 border border-estratego-success/30 rounded-lg p-2 text-center">
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider">Ganancia 12 meses</p>
+                  <p className="font-display text-lg font-bold text-estratego-success">{fmtUSD(roi.mejora_anual)}</p>
+                </div>
+              </div>
+              {mesesRecuperacion != null && (
+                <p className="text-[11px] text-center text-slate-300 bg-estratego-success/5 border border-estratego-success/20 rounded px-2 py-1.5">
+                  Recuperas la inversión en aproximadamente{' '}
+                  <strong className="text-estratego-success">
+                    {mesesRecuperacion.toFixed(1)} mes
+                    {mesesRecuperacion >= 1.05 ? 'es' : ''}
+                  </strong>
+                  . El mes 1 es onboarding; el sistema entrega su mejora completa hacia el mes 6.
                 </p>
               )}
             </div>
+          </SeccionNumerada>
+        </div>
+
+        {/* SECCIÓN 7: DECISIÓN (full width) */}
+        <SeccionNumerada numero="7" tono="slate" titulo="La decisión es tuya">
+          <div className="grid gap-3 md:grid-cols-[1fr,auto,1fr]">
+            <div className="bg-estratego-danger/10 border border-estratego-danger/30 rounded-xl p-4 flex items-center gap-3">
+              <span className="w-10 h-10 rounded-full bg-estratego-danger/20 border border-estratego-danger/40 flex items-center justify-center text-estratego-danger">
+                <Icono.Equis className="w-5 h-5" />
+              </span>
+              <div className="flex-1">
+                <p className="text-xs text-slate-300 font-semibold">Seguir perdiendo</p>
+                <p className="font-display text-2xl font-bold text-estratego-danger leading-tight">
+                  {fmtUSD(fuga.fuga_mensual)}
+                  <span className="text-xs text-slate-400 font-normal ml-1">/ mes</span>
+                </p>
+                <p className="text-xs text-slate-400">
+                  {fmtUSD(fuga.fuga_anual)} <span className="text-slate-500">/ año</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="hidden md:flex items-center justify-center">
+              <span className="w-10 h-10 rounded-full border border-estratego-border flex items-center justify-center text-slate-400 text-sm font-bold">VS</span>
+            </div>
+
+            <div className="bg-estratego-success/10 border border-estratego-success/30 rounded-xl p-4 flex items-center gap-3">
+              <span className="w-10 h-10 rounded-full bg-estratego-success/20 border border-estratego-success/40 flex items-center justify-center text-estratego-success">
+                <Icono.Check className="w-5 h-5" />
+              </span>
+              <div className="flex-1">
+                <p className="text-xs text-slate-300 font-semibold">Recuperar</p>
+                <p className="font-display text-2xl font-bold text-estratego-success leading-tight">
+                  +{fmtUSD(totalRecuperable)}
+                  <span className="text-xs text-slate-400 font-normal ml-1">/ mes</span>
+                </p>
+                <p className="text-xs text-slate-400">
+                  {fmtUSD(opt.mejora_anual)} <span className="text-slate-500">/ año</span>
+                </p>
+              </div>
+            </div>
           </div>
-        </Card>
+          <p className="text-[11px] text-center text-slate-500 mt-3 italic">
+            AnalyticsEstratego — Transformamos tu proceso comercial en resultados reales.
+          </p>
+        </SeccionNumerada>
       </div>
     </div>
   );

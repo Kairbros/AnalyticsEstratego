@@ -38,11 +38,20 @@ CREATE TABLE diagnosticos (
   cliente_id     INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
   vendedor_id    INTEGER          REFERENCES usuarios(id) ON DELETE SET NULL,
 
+  nombre         VARCHAR(200),
+
   bloque_a       JSONB NOT NULL DEFAULT '{}'::jsonb,
   bloque_b       JSONB NOT NULL DEFAULT '{}'::jsonb,
   bloque_c       JSONB NOT NULL DEFAULT '{}'::jsonb,
   bloque_d       JSONB NOT NULL DEFAULT '{}'::jsonb,
   resultados     JSONB NOT NULL DEFAULT '{}'::jsonb,
+
+  -- Notas que el vendedor escribe sobre la propuesta acordada con el cliente
+  propuesta_acordada TEXT,
+  -- Propuesta comercial generada por OpenAI (texto plano con saltos de línea)
+  propuesta_generada TEXT,
+  -- Plan elegido por el agente: starter | launch | scale | premium
+  propuesta_plan     VARCHAR(20),
 
   estado         estado_diagnostico NOT NULL DEFAULT 'borrador',
 

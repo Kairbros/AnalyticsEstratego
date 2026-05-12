@@ -5,6 +5,7 @@ import { obtenerCliente } from '../../services/diagnosticos.service';
 import {
   listarDiagnosticosDeCliente,
   crearDiagnostico,
+  eliminarDiagnostico,
 } from '../../services/diagnosticos.service';
 
 const ETIQUETA_ESTADO = {
@@ -22,6 +23,7 @@ export default function ClienteDetalle() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [creando, setCreando] = useState(false);
+  const [eliminandoId, setEliminandoId] = useState(null);
 
   async function cargar() {
     setCargando(true);
@@ -49,6 +51,24 @@ export default function ClienteDetalle() {
     cargar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clienteId]);
+
+  async function handleEliminar(d) {
+    const etiqueta = d.estado === 'completado' ? 'completado' : 'borrador';
+    const ok = window.confirm(
+      `¿Eliminar el diagnóstico #${d.id} (${etiqueta})?\nEsta acción no se puede deshacer.`,
+    );
+    if (!ok) return;
+    setError('');
+    setEliminandoId(d.id);
+    try {
+      await eliminarDiagnostico(d.id);
+      setDiagnosticos((prev) => prev.filter((x) => x.id !== d.id));
+    } catch (err) {
+      setError(err.response?.data?.error || 'No se pudo eliminar el diagnóstico');
+    } finally {
+      setEliminandoId(null);
+    }
+  }
 
   async function handleNuevoDiagnostico() {
     setCreando(true);
@@ -125,6 +145,7 @@ export default function ClienteDetalle() {
                   <thead>
                     <tr className="text-left text-slate-400 border-b border-estratego-border">
                       <th className="py-2 pr-4 font-medium">#</th>
+                      <th className="py-2 pr-4 font-medium">Nombre</th>
                       <th className="py-2 pr-4 font-medium">Estado</th>
                       <th className="py-2 pr-4 font-medium">Creado</th>
                       <th className="py-2 pr-4 font-medium">Actualizado</th>
@@ -137,6 +158,9 @@ export default function ClienteDetalle() {
                       return (
                         <tr key={d.id} className="border-b border-estratego-border/50">
                           <td className="py-2 pr-4">#{d.id}</td>
+                          <td className="py-2 pr-4 text-slate-200">
+                            {d.nombre || <span className="text-slate-500">—</span>}
+                          </td>
                           <td className="py-2 pr-4">
                             <span className={`text-xs px-2 py-0.5 rounded-full ${e.clase}`}>
                               {e.texto}
@@ -149,12 +173,22 @@ export default function ClienteDetalle() {
                             {new Date(d.actualizado_en).toLocaleString()}
                           </td>
                           <td className="py-2 pr-4 text-right">
-                            <Link
-                              to={`/vendedor/diagnosticos/${d.id}`}
-                              className="text-xs border border-estratego-border rounded px-2 py-1 hover:bg-white/5"
-                            >
-                              {d.estado === 'completado' ? 'Ver' : 'Continuar'}
-                            </Link>
+                            <div className="flex items-center gap-2 justify-end">
+                              <Link
+                                to={`/vendedor/diagnosticos/${d.id}`}
+                                className="text-xs border border-estratego-border rounded px-2 py-1 hover:bg-white/5"
+                              >
+                                {d.estado === 'completado' ? 'Ver' : 'Continuar'}
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleEliminar(d)}
+                                disabled={eliminandoId === d.id}
+                                className="text-xs border border-estratego-border rounded px-2 py-1 hover:bg-estratego-danger/10 hover:border-estratego-danger hover:text-estratego-danger disabled:opacity-60"
+                              >
+                                {eliminandoId === d.id ? 'Eliminando…' : 'Eliminar'}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

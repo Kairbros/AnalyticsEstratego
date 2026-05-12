@@ -56,6 +56,7 @@ export default function ClienteListado() {
               <thead>
                 <tr className="text-left text-slate-400 border-b border-estratego-border">
                   <th className="py-2 pr-4 font-medium">#</th>
+                  <th className="py-2 pr-4 font-medium">Nombre</th>
                   <th className="py-2 pr-4 font-medium">Fecha</th>
                   <th className="py-2 pr-4 font-medium text-right">Acción</th>
                 </tr>
@@ -64,6 +65,9 @@ export default function ClienteListado() {
                 {diagnosticos.map((d) => (
                   <tr key={d.id} className="border-b border-estratego-border/50">
                     <td className="py-2 pr-4">#{d.id}</td>
+                    <td className="py-2 pr-4 text-slate-200">
+                      {d.nombre || <span className="text-slate-500">—</span>}
+                    </td>
                     <td className="py-2 pr-4 text-slate-400">
                       {new Date(d.actualizado_en).toLocaleString()}
                     </td>

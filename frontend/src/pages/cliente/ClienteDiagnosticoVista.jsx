@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import { obtenerDiagnostico } from '../../services/diagnosticos.service';
+import {
+  obtenerDiagnostico,
+  descargarPropuestaPDF,
+} from '../../services/diagnosticos.service';
 import ResultadosDiagnostico from '../../components/ResultadosDiagnostico';
 
 export default function ClienteDiagnosticoVista() {
@@ -10,6 +13,7 @@ export default function ClienteDiagnosticoVista() {
   const [diagnostico, setDiagnostico] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [descargando, setDescargando] = useState(false);
 
   useEffect(() => {
     if (!Number.isInteger(diagId) || diagId <= 0) {
@@ -38,6 +42,18 @@ export default function ClienteDiagnosticoVista() {
     };
   }, [diagId]);
 
+  async function handleDescargar() {
+    setDescargando(true);
+    try {
+      await descargarPropuestaPDF(
+        diagId,
+        `propuesta_${diagnostico.propuesta_plan}.pdf`,
+      );
+    } finally {
+      setDescargando(false);
+    }
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -53,10 +69,35 @@ export default function ClienteDiagnosticoVista() {
 
         {diagnostico && (
           <>
+            {diagnostico.propuesta_plan && (
+              <section className="card flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-display text-lg font-semibold text-slate-100">
+                    Propuesta comercial
+                  </h3>
+                  <p className="text-sm text-slate-400">
+                    Plan recomendado:{' '}
+                    <span className="text-estratego-gold font-semibold">
+                      {String(diagnostico.propuesta_plan).toUpperCase()}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={descargando}
+                  onClick={handleDescargar}
+                  className="btn-gold"
+                >
+                  {descargando ? 'Descargando…' : 'Descargar propuesta PDF'}
+                </button>
+              </section>
+            )}
+
             {diagnostico.resultados ? (
               <ResultadosDiagnostico
                 resultados={diagnostico.resultados}
                 diagnosticoId={diagnostico.id}
+                nombreDiagnostico={diagnostico.nombre}
                 cliente={{
                   nombre: diagnostico.cliente_nombre,
                   email: diagnostico.cliente_email,
