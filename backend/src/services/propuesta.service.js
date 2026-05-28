@@ -74,7 +74,7 @@ DATOS DEL CLIENTE
 
 CONTEXTO DEL NEGOCIO
 - Facturación mensual declarada: ${ctx?.total_estimado ? fmtUSD(ctx.total_estimado) : '(no informada)'}
-- Leads por semana: ${a.leads_semana}
+- Leads por mes: ${a.leads_mes != null && a.leads_mes !== '' ? a.leads_mes : Number(a.leads_semana || 0) * 4}
 - Canales de captación: ${(a.canales_leads || []).join(', ') || '(ninguno)'}
 - Equipo de ventas: ${a.equipo_ventas || 0} personas
 - Ticket promedio: ${fmtUSD(a.ticket_promedio)}

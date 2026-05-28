@@ -2,7 +2,7 @@
 // Recibe los 4 bloques y devuelve el objeto `resultados` que se guarda en la BD
 // y se usa para pintar las 4 gráficas del cliente.
 
-// Modelo de inversión: pago único (sin mensualidad operativa en el ROI).
+// Modelo de inversión: el ROI se calcula contra el SETUP inicial (pago único).
 // El setup escala con el tamaño del cliente — un negocio que factura
 // $5k/mes no paga lo mismo que uno que factura $200k/mes. La auto-
 // selección de plan asegura coherencia entre el ROI del diagnóstico
@@ -13,14 +13,44 @@ const PLANES_SETUP = {
   scale: 5000,
   premium: 9000,
 };
-// Fee mensual operativo no se cuenta en el ROI (es continuidad, no inversión).
+// Continuidad operativa mensual + permanencia mínima de cada plan. DEBE
+// coincidir con los precios de las plantillas en resources/propuesta/*.txt
+// y con PRECIOS en propuesta.service.js. Se expone al frontend para que el
+// diagnóstico muestre la mensualidad y no contradiga la propuesta.
+const PLANES_CONTINUIDAD = {
+  starter: { mensual: 600, permanencia: 6 },
+  launch: { mensual: 900, permanencia: 3 },
+  scale: { mensual: 1000, permanencia: 3 },
+  premium: { mensual: 1500, permanencia: 6 },
+};
+// El fee mensual NO entra en el cálculo del ROI: el ROI mide el retorno del
+// setup inicial. La continuidad se muestra aparte y se contrasta con la
+// mejora mensual proyectada (que es la que la sostiene).
 const FEE_MENSUAL_ESTRATEGO_USD = 0;
 
-// Auto-selecciona plan según facturación mensual y volumen de leads.
-function planRecomendado(ingresosMes, leadsMes) {
-  if (ingresosMes >= 100000 || leadsMes >= 1500) return 'premium';
-  if (ingresosMes >= 50000 || leadsMes >= 400) return 'scale';
-  if (ingresosMes >= 15000 || leadsMes >= 100) return 'launch';
+const ORDEN_PLANES = ['starter', 'launch', 'scale', 'premium'];
+
+// Auto-selecciona plan en dos pasos:
+//   1) Tier "natural" según el tamaño del negocio (facturación declarada o
+//      ingresos del embudo, lo que sea mayor) + volumen de leads.
+//   2) Lo baja hasta un plan cuyo setup la mejora anual proyectada pueda
+//      recuperar (payback ≤ 12 meses). Así evitamos recomendar un plan caro
+//      a un negocio cuya mejora no lo justifica — eso era lo que hacía salir
+//      el ROI negativo. Si ni STARTER se recupera en 12 meses, devolvemos
+//      STARTER igual (punto de entrada); el front maneja ese caso aparte.
+function planRecomendado(ingresosMes, leadsMes, facturacionMes, mejoraAnual) {
+  const tamano = Math.max(num(facturacionMes), num(ingresosMes));
+  let tierMax;
+  if (tamano >= 100000 || leadsMes >= 1500) tierMax = 'premium';
+  else if (tamano >= 50000 || leadsMes >= 400) tierMax = 'scale';
+  else if (tamano >= 15000 || leadsMes >= 100) tierMax = 'launch';
+  else tierMax = 'starter';
+
+  const maxIdx = ORDEN_PLANES.indexOf(tierMax);
+  for (let i = maxIdx; i >= 0; i--) {
+    const plan = ORDEN_PLANES[i];
+    if (mejoraAnual >= PLANES_SETUP[plan]) return plan;
+  }
   return 'starter';
 }
 
@@ -108,8 +138,13 @@ export function calcularResultados(diagnostico) {
   const c = diagnostico.bloque_c || {};
   const d = diagnostico.bloque_d || {};
 
-  const leadsSemana = num(a.leads_semana);
-  const leadsMes = leadsSemana * 4;
+  // Compat: nuevos diagnósticos guardan `leads_mes`; los antiguos guardaban
+  // `leads_semana` (× 4 = mensual). Si llega el campo nuevo lo respetamos;
+  // si no, caemos al legacy para no romper diagnósticos ya completados.
+  const leadsMes =
+    a.leads_mes != null && a.leads_mes !== ''
+      ? num(a.leads_mes)
+      : num(a.leads_semana) * 4;
   const ticket = num(a.ticket_promedio);
   const inversionPub = num(a.inversion_publicidad_mensual);
 
@@ -304,21 +339,42 @@ export function calcularResultados(diagnostico) {
     return 1.0;
   }
 
-  // Auto-seleccionar plan según tamaño del cliente. El setup usado para
-  // el ROI = el setup del plan recomendado, así el diagnóstico cuadra
-  // con la propuesta comercial que se generará después.
+  // Mejora anual realista (suma de la curva de adopción × mejora mensual).
+  // No depende del plan, así que la calculamos ANTES de elegir plan para
+  // poder elegir un plan cuyo setup la mejora pueda recuperar.
+  const mejoraMes1 = mejoraMes * factorAdopcion(0); // siempre 0 con curva nueva
+  let mejoraAnualReal = 0;
+  for (let i = 0; i < 12; i++) mejoraAnualReal += mejoraMes * factorAdopcion(i);
+
+  // Facturación declarada (señal de tamaño del negocio para elegir plan).
+  const facturacionUsd = num(a.facturacion_mensual_usd, 0);
+
+  // Auto-seleccionar plan según tamaño del cliente, acotado por lo que la
+  // mejora puede justificar. El setup usado para el ROI = el setup del plan
+  // recomendado, así el diagnóstico cuadra con la propuesta comercial.
   const planRec = planRecomendado(
     ingresosMes,
     Number.isFinite(ingresosMes) ? leadsMes : 0,
+    facturacionUsd,
+    mejoraAnualReal,
   );
   const inversionTotal = PLANES_SETUP[planRec] || PLANES_SETUP.launch;
   const inversionAnual = inversionTotal; // alias para compatibilidad
-  let mejoraAnualReal = 0;
+  const continuidad = PLANES_CONTINUIDAD[planRec] || PLANES_CONTINUIDAD.launch;
+  // Total mínimo del programa = setup + mensualidad × (permanencia − 1),
+  // porque el primer pago ya incluye el primer ciclo (la mensualidad corre
+  // desde el mes 2). Coincide con "Total mínimo del programa" de la propuesta.
+  const totalMinimoPrograma =
+    inversionTotal + continuidad.mensual * Math.max(0, continuidad.permanencia - 1);
+
+  // Payback: mes en que la mejora acumulada cubre el setup del plan elegido.
+  // Buscamos hasta 36 meses para poder mostrar siempre un horizonte concreto
+  // (aunque el ROI a 12 meses sea negativo, el setup se recupera en algún
+  // momento mientras la mejora mensual sea positiva).
   let mesesRecuperacion = null;
-  const mejoraMes1 = mejoraMes * factorAdopcion(0); // siempre 0 con curva nueva
   {
     let acumMejora = 0;
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 36; i++) {
       const mejoraEsteMes = mejoraMes * factorAdopcion(i);
       const prevAcum = acumMejora;
       acumMejora += mejoraEsteMes;
@@ -328,9 +384,9 @@ export function calcularResultados(diagnostico) {
           ? Math.max(0, Math.min(1, falta / mejoraEsteMes))
           : 0;
         mesesRecuperacion = i + frac;
+        break;
       }
     }
-    mejoraAnualReal = acumMejora;
   }
   const mejoraAnualUsado = mejoraAnualReal;
   const roi =
@@ -341,9 +397,9 @@ export function calcularResultados(diagnostico) {
   // Contexto de facturación: el embudo solo mide NUEVAS ventas captadas.
   // Lo comparamos contra la facturación total declarada para que el cliente
   // entienda qué porción de su negocio depende de la captación nueva.
+  // (facturacionUsd ya se calculó arriba para la selección de plan.)
   // Prioridad: valor numérico ingresado por el vendedor; fallback al rango
   // antiguo (mid) para diagnósticos creados antes de cambiar el campo.
-  const facturacionUsd = num(a.facturacion_mensual_usd, 0);
   const rangoLegacy = FACTURACION_RANGOS[a.facturacion_mensual_rango];
   let totalEstimado = 0;
   let rangoLabel = null;
@@ -463,6 +519,10 @@ export function calcularResultados(diagnostico) {
       setup_inicial: inversionTotal,
       inversion_total: inversionTotal,
       inversion_anual: inversionAnual,
+      // Continuidad operativa (coincide con la propuesta). NO entra en el ROI.
+      fee_mensual_continuidad: continuidad.mensual,
+      permanencia_meses: continuidad.permanencia,
+      total_minimo_programa: redondear(totalMinimoPrograma),
       mejora_mensual: redondear(mejoraMes),
       mejora_mes_1_con_rampup: redondear(mejoraMes1),
       recupera_mes_1: recuperaMes1,

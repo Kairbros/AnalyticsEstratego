@@ -41,7 +41,7 @@ const CRM_OPCIONES = [
 
 const BLOQUE_A_INICIAL = {
   facturacion_mensual_usd: '',
-  leads_semana: '',
+  leads_mes: '',
   canales_leads: [],
   equipo_ventas: '',
   ticket_promedio: '',
@@ -49,6 +49,22 @@ const BLOQUE_A_INICIAL = {
   sector_otro: '',
   inversion_publicidad_mensual: '',
 };
+
+// Compat: diagnósticos viejos guardaban `leads_semana`. Si llega un payload
+// legacy, lo convertimos a `leads_mes` al cargar para que el formulario use
+// solo el campo nuevo.
+function normalizarBloqueA(guardado) {
+  const base = normalizar(BLOQUE_A_INICIAL, guardado);
+  if (
+    (base.leads_mes == null || base.leads_mes === '') &&
+    guardado &&
+    guardado.leads_semana != null &&
+    guardado.leads_semana !== ''
+  ) {
+    base.leads_mes = String(Number(guardado.leads_semana) * 4);
+  }
+  return base;
+}
 const BLOQUE_B_INICIAL = {
   leads_respondidos_mismo_dia: '',
   tiempo_respuesta_valor: '',
@@ -92,7 +108,10 @@ const BLOQUE_D_INICIAL = {
   tiene_horario_atencion: false,
   horario_atencion: '',
   leads_fuera_horario: '',
-  ventas_perdidas_conocidas: '',
+  // 0 es un valor válido: mucha gente no tiene este dato registrado.
+  // Lo inicializamos como '0' (no '') para que el slider no quede en estado
+  // "sin tocar" y el validador no lo rechace.
+  ventas_perdidas_conocidas: '0',
 };
 
 function normalizar(inicial, guardado) {
@@ -152,7 +171,7 @@ export default function DiagnosticoEditor() {
         setNombre(d.nombre || '');
         setPropuestaAcordada(d.propuesta_acordada || '');
         setData({
-          a: normalizar(BLOQUE_A_INICIAL, d.bloque_a),
+          a: normalizarBloqueA(d.bloque_a),
           b: normalizar(BLOQUE_B_INICIAL, d.bloque_b),
           c: normalizar(BLOQUE_C_INICIAL, d.bloque_c),
           d: normalizar(BLOQUE_D_INICIAL, d.bloque_d),
@@ -233,7 +252,7 @@ export default function DiagnosticoEditor() {
     const llenoPositivo = (v) => lleno(v) && Number(v) > 0;
 
     if (!llenoPositivo(a.facturacion_mensual_usd)) errores.push('Facturación mensual');
-    if (!llenoPositivo(a.leads_semana)) errores.push('Leads por semana');
+    if (!llenoPositivo(a.leads_mes)) errores.push('Leads por mes');
     if (!a.canales_leads || a.canales_leads.length === 0) errores.push('Canales de captación de leads');
     if (!lleno(a.equipo_ventas)) errores.push('Personas en el equipo de ventas');
     if (!llenoPositivo(a.ticket_promedio)) errores.push('Ticket promedio');
@@ -314,11 +333,11 @@ export default function DiagnosticoEditor() {
 
   const costoPorLeadSugerido = useMemo(() => {
     const inv = Number(data.a.inversion_publicidad_mensual);
-    const leadsSem = Number(data.a.leads_semana);
-    if (!Number.isFinite(inv) || !Number.isFinite(leadsSem)) return null;
-    if (inv <= 0 || leadsSem <= 0) return null;
-    return +(inv / (leadsSem * 4)).toFixed(2);
-  }, [data.a.inversion_publicidad_mensual, data.a.leads_semana]);
+    const leadsMes = Number(data.a.leads_mes);
+    if (!Number.isFinite(inv) || !Number.isFinite(leadsMes)) return null;
+    if (inv <= 0 || leadsMes <= 0) return null;
+    return +(inv / leadsMes).toFixed(2);
+  }, [data.a.inversion_publicidad_mensual, data.a.leads_mes]);
 
   const estadoGuardadoTexto = guardando
     ? 'Guardando…'
@@ -646,14 +665,14 @@ function BloqueA({ data, onChange, onToggleCanal }) {
         />
       </Campo>
 
-      <Campo label="Leads por semana" required>
+      <Campo label="Leads por mes" required>
         <input
           type="number"
           min={0}
-          placeholder="Ej. 25"
+          placeholder="Ej. 100"
           className={claseInput}
-          value={data.leads_semana}
-          onChange={(e) => set('leads_semana', e.target.value)}
+          value={data.leads_mes}
+          onChange={(e) => set('leads_mes', e.target.value)}
         />
       </Campo>
 
@@ -931,7 +950,7 @@ function BloqueC({ data, onChange, costoSugerido }) {
           </button>
         </div>
         <span className="text-[11px] text-slate-400 mt-1">
-          Sugerencia = inversión mensual ÷ (leads/sem × 4)
+          Sugerencia = inversión mensual ÷ leads por mes
         </span>
       </Campo>
 
@@ -992,6 +1011,10 @@ function BloqueD({ data, onChange }) {
           sufijo=" ventas"
           onChange={(v) => set('ventas_perdidas_conocidas', v)}
         />
+        <p className="text-[11px] text-slate-500 mt-1">
+          Si no tienes el dato, déjalo en 0. Solo cuenta ventas que sepas
+          confirmadamente que se perdieron (no estimaciones).
+        </p>
       </Campo>
 
       <Campo label="¿Tiene horario de atención definido?" full>
