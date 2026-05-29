@@ -457,9 +457,38 @@ export function calcularResultados(diagnostico) {
     });
   }
 
+  // === Costo actual, costo de oportunidad y beneficio esperado =======
+  // Base común: "oportunidades perdidas" = leads que llegan y no cierran.
+  const leadsPerdidosMes = Math.max(0, leadsMes - ventas);
+  // Conversión alcanzable = global del escenario optimizado (realista, con
+  // tope ya aplicado a ventasOpt). Se usa para valorar el costo de oportunidad.
+  const tasaConversionAlcanzable = leadsMes > 0 ? ventasOpt / leadsMes : 0;
+  // 1) Costo actual: inversión publicitaria desperdiciada en leads que no
+  //    cierran (ya pagaste el costo por lead por cada uno).
+  const costoActualMes = leadsPerdidosMes * costoPorLead;
+  // 2) Costo de oportunidad: ingresos alcanzables que hoy se dejan sobre la
+  //    mesa = leads perdidos × ticket × conversión alcanzable.
+  const costoOportunidadMes = leadsPerdidosMes * tasaConversionAlcanzable * ticket;
+  // 3) Beneficio esperado: la mejora realista comprometida (con tope +20% y
+  //    ramp-up). Reusa lo ya calculado para no contradecir el ROI.
+  const ventasAdicionalesMes = Math.max(0, ventasOpt - ventas);
+  const costos = {
+    leads_perdidos_mes: redondear(leadsPerdidosMes, 0),
+    costo_por_lead: redondear(costoPorLead),
+    costo_actual_mes: redondear(costoActualMes),
+    costo_actual_anual: redondear(costoActualMes * 12),
+    tasa_conversion_alcanzable_pct: redondear(tasaConversionAlcanzable * 100, 1),
+    costo_oportunidad_mes: redondear(costoOportunidadMes),
+    costo_oportunidad_anual: redondear(costoOportunidadMes * 12),
+    beneficio_mes: redondear(mejoraMes),
+    beneficio_anual: redondear(mejoraAnualUsado),
+    ventas_adicionales_mes: redondear(ventasAdicionalesMes, 1),
+  };
+
   return {
     version: 1,
     calculado_en: new Date().toISOString(),
+    costos,
     entradas: {
       leads_mes: redondear(leadsMes, 0),
       ticket_promedio: redondear(ticket),

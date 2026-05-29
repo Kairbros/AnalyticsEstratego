@@ -499,6 +499,27 @@ export default function ResultadosDiagnostico({
   // y un mensaje medido. El número sigue siendo honesto, solo mejor enmarcado.
   const roiPositivo = Number(roi.roi_porcentaje) >= 0;
 
+  // Costo actual / costo de oportunidad / beneficio esperado. Vienen del
+  // backend (bloque `costos`); con fallback para diagnósticos viejos.
+  const costos = resultados.costos || {};
+  const cpl = costos.costo_por_lead ?? resultados.entradas?.costo_por_lead ?? 0;
+  const leadsPerdidosMes =
+    costos.leads_perdidos_mes ?? Math.max(0, embudo.leads - embudo.ventas);
+  const costoActualMes = costos.costo_actual_mes ?? leadsPerdidosMes * cpl;
+  const costoActualAnual = costos.costo_actual_anual ?? costoActualMes * 12;
+  const tasaAlcanzablePct =
+    costos.tasa_conversion_alcanzable_pct ??
+    Math.round((opt.ventas / Math.max(1, opt.leads)) * 100);
+  const costoOportunidadMes =
+    costos.costo_oportunidad_mes ??
+    leadsPerdidosMes * (tasaAlcanzablePct / 100) * ticket;
+  const costoOportunidadAnual =
+    costos.costo_oportunidad_anual ?? costoOportunidadMes * 12;
+  const beneficioMes = costos.beneficio_mes ?? mejoraMensualMadura;
+  const beneficioAnual = costos.beneficio_anual ?? mejoraAnualReal;
+  const ventasAdicionalesMes =
+    costos.ventas_adicionales_mes ?? Math.max(0, opt.ventas - embudo.ventas);
+
   const recuperablesData = [
     {
       icono: <Icono.Rayo />,
@@ -830,9 +851,100 @@ export default function ResultadosDiagnostico({
           )}
         </SeccionNumerada>
 
-        {/* SECCIONES 5 + 6 lado a lado */}
+        {/* SECCIÓN 5: COSTO ACTUAL · COSTO DE OPORTUNIDAD · BENEFICIO ESPERADO */}
+        <SeccionNumerada
+          numero="5"
+          tono="warning"
+          titulo="El costo de no actuar"
+          descripcion="Lo que ya pierdes hoy, lo que dejas de ganar y lo que recuperarías"
+        >
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Costo actual */}
+            <div className="bg-estratego-danger/5 border border-estratego-danger/25 rounded-xl p-4 flex flex-col">
+              <p className="text-[11px] uppercase tracking-wider text-estratego-danger font-semibold flex items-center gap-1.5">
+                <Icono.Equis className="w-4 h-4" /> Costo actual
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1 leading-tight">
+                Inversión publicitaria que se va en leads que no cierran.
+              </p>
+              <p className="font-display text-3xl font-bold text-estratego-danger leading-none mt-3">
+                {fmtUSD(costoActualMes)}<span className="text-sm text-slate-400 font-normal"> /mes</span>
+              </p>
+              <p className="text-sm text-estratego-danger/80 font-semibold mt-1">
+                {fmtUSD(costoActualAnual)} <span className="text-slate-500 font-normal">/año</span>
+              </p>
+              <p
+                className="text-[10px] text-slate-500 mt-3 border-t border-estratego-border pt-2 cursor-help"
+                {...titleAttr(
+                  `${fmtNum(leadsPerdidosMes)} leads que llegan y no cierran × ${fmtUSD(cpl)} de costo por lead.`
+                )}
+              >
+                {fmtNum(leadsPerdidosMes)} leads/mes sin cerrar × {fmtUSD(cpl)} c/u
+              </p>
+            </div>
+
+            {/* Costo de oportunidad */}
+            <div className="bg-amber-500/5 border border-amber-500/25 rounded-xl p-4 flex flex-col">
+              <p className="text-[11px] uppercase tracking-wider text-amber-400 font-semibold flex items-center gap-1.5">
+                <Icono.Alerta className="w-4 h-4" /> Costo de oportunidad
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1 leading-tight">
+                Ventas alcanzables que hoy dejas sobre la mesa por no actuar.
+              </p>
+              <p className="font-display text-3xl font-bold text-amber-400 leading-none mt-3">
+                {fmtUSD(costoOportunidadMes)}<span className="text-sm text-slate-400 font-normal"> /mes</span>
+              </p>
+              <p className="text-sm text-amber-400/80 font-semibold mt-1">
+                {fmtUSD(costoOportunidadAnual)} <span className="text-slate-500 font-normal">/año</span>
+              </p>
+              <p
+                className="text-[10px] text-slate-500 mt-3 border-t border-estratego-border pt-2 cursor-help"
+                {...titleAttr(
+                  `${fmtNum(leadsPerdidosMes)} leads no cerrados × ${fmtUSD(ticket)} ticket × ${tasaAlcanzablePct}% de conversión alcanzable. Es el techo a régimen, no lo comprometido.`
+                )}
+              >
+                A tu conversión alcanzable ({tasaAlcanzablePct}%) × ticket {fmtUSD(ticket)}
+              </p>
+            </div>
+
+            {/* Beneficio esperado */}
+            <div className="bg-estratego-success/5 border border-estratego-success/30 rounded-xl p-4 flex flex-col">
+              <p className="text-[11px] uppercase tracking-wider text-estratego-success font-semibold flex items-center gap-1.5">
+                <Icono.Check className="w-4 h-4" /> Beneficio esperado
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1 leading-tight">
+                Lo que proyectamos recuperar con la solución (prudente).
+              </p>
+              <p className="font-display text-3xl font-bold text-estratego-success leading-none mt-3">
+                +{fmtUSD(beneficioMes)}<span className="text-sm text-slate-400 font-normal"> /mes</span>
+              </p>
+              <p className="text-sm text-estratego-success/80 font-semibold mt-1">
+                {fmtUSD(beneficioAnual)} <span className="text-slate-500 font-normal">/año</span>
+              </p>
+              <p
+                className="text-[10px] text-slate-500 mt-3 border-t border-estratego-border pt-2 cursor-help"
+                {...titleAttr(
+                  'Mejora comprometida con tope prudente (+20%) y curva de adopción. El primer año incluye onboarding; a régimen rinde más.'
+                )}
+              >
+                ≈ {fmtNum(ventasAdicionalesMes)} ventas más/mes · con tope y ramp-up
+              </p>
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-4 bg-estratego-ink/40 border border-estratego-border rounded-lg px-3 py-2 flex items-start gap-2">
+            <Icono.Info className="w-3.5 h-3.5 text-estratego-gold shrink-0 mt-0.5" />
+            <span>
+              El <strong className="text-amber-400">costo de oportunidad</strong> es el techo
+              alcanzable a tu tasa optimizada; el <strong className="text-estratego-success">beneficio
+              esperado</strong> es lo que comprometemos de forma prudente (con tope y ramp-up).
+              La diferencia entre ambos es tu margen de crecimiento al escalar.
+            </span>
+          </p>
+        </SeccionNumerada>
+
+        {/* SECCIONES 6 + 7 lado a lado */}
         <div className="grid gap-4 md:grid-cols-2">
-          <SeccionNumerada numero="5" tono="gold" titulo="Proyección a 12 meses">
+          <SeccionNumerada numero="6" tono="gold" titulo="Proyección a 12 meses">
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={proyeccionData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={COLORS.grid} />
@@ -866,7 +978,7 @@ export default function ResultadosDiagnostico({
             )}
           </SeccionNumerada>
 
-          <SeccionNumerada numero="6" tono="success" titulo="ROI del sistema">
+          <SeccionNumerada numero="7" tono="success" titulo="ROI del sistema">
             <div className="flex-1 flex flex-col justify-center gap-3">
               <div className="text-center">
                 {roiPositivo ? (
@@ -967,7 +1079,7 @@ export default function ResultadosDiagnostico({
           if (!plan) return null;
           return (
             <SeccionNumerada
-              numero="7"
+              numero="8"
               tono="gold"
               titulo={`Nivel recomendado: ${plan.nombre}`}
               descripcion={plan.titulo}
@@ -1009,7 +1121,7 @@ export default function ResultadosDiagnostico({
 
         {/* SECCIÓN 8: GARANTÍA Y DIFERENCIAL */}
         <SeccionNumerada
-          numero="8"
+          numero="9"
           tono="success"
           titulo="Garantía técnica y diferencial"
           descripcion="Lo que cubre Estratego y lo que nos hace distintos"
@@ -1056,7 +1168,7 @@ export default function ResultadosDiagnostico({
 
         {/* SECCIÓN 9: PASOS POST-PAGO */}
         <SeccionNumerada
-          numero="9"
+          numero="10"
           tono="gold"
           titulo="Qué pasa después de aprobar"
           descripcion="Hay un plan claro — esto no es un salto al vacío"
@@ -1089,7 +1201,7 @@ export default function ResultadosDiagnostico({
         </SeccionNumerada>
 
         {/* SECCIÓN 10: DECISIÓN (full width) */}
-        <SeccionNumerada numero="10" tono="slate" titulo="La decisión es tuya">
+        <SeccionNumerada numero="11" tono="slate" titulo="La decisión es tuya">
           <div className="grid gap-3 md:grid-cols-[1fr,auto,1fr]">
             <div className="bg-estratego-danger/10 border border-estratego-danger/30 rounded-xl p-4 flex items-center gap-3">
               <span className="w-10 h-10 rounded-full bg-estratego-danger/20 border border-estratego-danger/40 flex items-center justify-center text-estratego-danger">
