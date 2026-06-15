@@ -43,7 +43,7 @@ const fmtUSD = (n) =>
 const fmtNum = (n) =>
   new Intl.NumberFormat('es-CO').format(Math.round(Number.isFinite(+n) ? +n : 0));
 
-const MES_NOMBRES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MES_NOMBRES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 // Resumen visual de cada plan para mostrar en la sección "Nivel recomendado".
 // Los detalles completos viven en backend/resources/propuesta/*.txt; aquí
@@ -388,9 +388,7 @@ export default function ResultadosDiagnostico({
   );
   const maxComparativo = Math.max(maxEmbudo, maxOpt, 1);
 
-  const ticket = embudo.leads
-    ? Math.round(embudo.ingresos_mes / Math.max(1, embudo.ventas)) || 0
-    : 0;
+  const ticket = resultados.entradas?.ticket_promedio ?? 0;
   const sinAgendar = Math.max(0, embudo.contactados - embudo.reuniones);
   const noShow = Math.max(0, embudo.reuniones - embudo.asistidas);
   const sinCerrar = Math.max(0, embudo.asistidas - embudo.ventas);
@@ -458,19 +456,19 @@ export default function ResultadosDiagnostico({
   const proyeccionData = (
     proyeccionBackend.length === 12
       ? proyeccionBackend.map((p) => {
-          acumActual += ingresosActuales;
-          acumPlan += p.con_plan;
-          return {
-            mes: p.etiqueta || MES_NOMBRES[p.mes - 1] || `M${p.mes}`,
-            actual: Math.round(acumActual),
-            optimizado: Math.round(acumPlan),
-          };
-        })
+        acumActual += ingresosActuales;
+        acumPlan += p.con_plan;
+        return {
+          mes: p.etiqueta || MES_NOMBRES[p.mes - 1] || `M${p.mes}`,
+          actual: Math.round(acumActual),
+          optimizado: Math.round(acumPlan),
+        };
+      })
       : MES_NOMBRES.map((m, i) => ({
-          mes: m,
-          actual: Math.round(ingresosActuales * (i + 1)),
-          optimizado: Math.round(ingresosOpt * (i + 1)),
-        }))
+        mes: m,
+        actual: Math.round(ingresosActuales * (i + 1)),
+        optimizado: Math.round(ingresosOpt * (i + 1)),
+      }))
   );
 
   const penalizacionPct = opt.penalizacion_tiempo_respuesta_pct || 0;
@@ -515,7 +513,7 @@ export default function ResultadosDiagnostico({
     leadsPerdidosMes * (tasaAlcanzablePct / 100) * ticket;
   const costoOportunidadAnual =
     costos.costo_oportunidad_anual ?? costoOportunidadMes * 12;
-  const beneficioMes = costos.beneficio_mes ?? mejoraMensualMadura;
+  const beneficioMes = mejoraMensualReal;
   const beneficioAnual = costos.beneficio_anual ?? mejoraAnualReal;
   const ventasAdicionalesMes =
     costos.ventas_adicionales_mes ?? Math.max(0, opt.ventas - embudo.ventas);
@@ -590,10 +588,10 @@ export default function ResultadosDiagnostico({
 
   const fechaTxt = fecha
     ? new Date(fecha).toLocaleDateString('es-CO', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
     : new Date().toLocaleDateString('es-CO');
 
   return (
@@ -823,7 +821,7 @@ export default function ResultadosDiagnostico({
               </div>
             </div>
 
-            {(factorMejora || factorAbs) && (
+            {/* {(factorMejora || factorAbs) && (
               <div className="text-center px-4">
                 <p className="font-display text-5xl md:text-6xl font-bold text-estratego-gold leading-none">
                   {factorMejora ? `${factorMejora}X` : `+${factorAbs}`}
@@ -835,7 +833,7 @@ export default function ResultadosDiagnostico({
                   {factorMejora ? 'con el mismo número de leads' : 'con el mismo flujo de leads'}
                 </p>
               </div>
-            )}
+            )} */}
           </div>
           {factorMejora && (
             <p className="text-[11px] text-slate-400 mt-3 bg-estratego-ink/40 border border-estratego-border rounded-lg px-3 py-2 flex items-start gap-2">
@@ -936,7 +934,7 @@ export default function ResultadosDiagnostico({
             <span>
               El <strong className="text-amber-400">costo de oportunidad</strong> es el techo
               alcanzable a tu tasa optimizada; el <strong className="text-estratego-success">beneficio
-              esperado</strong> es lo que comprometemos de forma prudente (con tope y ramp-up).
+                esperado</strong> es lo que comprometemos de forma prudente (con tope y ramp-up).
               La diferencia entre ambos es tu margen de crecimiento al escalar.
             </span>
           </p>
@@ -981,145 +979,78 @@ export default function ResultadosDiagnostico({
           <SeccionNumerada numero="7" tono="success" titulo="ROI del sistema">
             <div className="flex-1 flex flex-col justify-center gap-3">
               <div className="text-center">
-                {roiPositivo ? (
-                  <>
-                    <p className="font-display text-5xl md:text-6xl font-bold leading-none text-estratego-success">
-                      {roi.roi_porcentaje}%
-                    </p>
-                    <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-2">Retorno anual</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-display text-4xl md:text-5xl font-bold leading-none text-estratego-gold">
-                      {mesesRecuperacion != null ? `${Math.round(mesesRecuperacion)} meses` : 'Mediano plazo'}
-                    </p>
-                    <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-2">
-                      Para recuperar tu inversión
-                    </p>
-                  </>
-                )}
+                <p className="font-display text-5xl md:text-6xl font-bold leading-none text-estratego-success">
+                  {fmtUSD(roi.mejora_anual)}
+                </p>
+                <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-2">Ganancia adicional el primer año</p>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div
-                  className="bg-estratego-ink/50 border border-estratego-border rounded-lg p-2 text-center cursor-help"
-                  {...titleAttr(
-                    `Plan sugerido automáticamente por el sistema según tu facturación mensual y volumen de leads. Tu asesor puede ajustar este nivel cuando construya la propuesta final.`
-                  )}
-                >
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wider">
-                    Setup inicial{roi.plan_recomendado ? ` · ${String(roi.plan_recomendado).toUpperCase()}` : ''}
-                  </p>
-                  <p className="font-display text-lg font-bold text-slate-100">{fmtUSD(setupInicial)}</p>
-                  {feeMensualContinuidad != null && (
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      + {fmtUSD(feeMensualContinuidad)}/mes continuidad
-                    </p>
-                  )}
-                </div>
-                <div className="bg-estratego-success/10 border border-estratego-success/30 rounded-lg p-2 text-center">
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wider">Ganancia 12 meses</p>
-                  <p className="font-display text-lg font-bold text-estratego-success">{fmtUSD(roi.mejora_anual)}</p>
-                </div>
+              <div className="bg-estratego-success/10 border border-estratego-success/30 rounded-lg p-3 text-center max-w-md mx-auto w-full">
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider">Ganancia 12 meses</p>
+                <p className="font-display text-xl font-bold text-estratego-success">{fmtUSD(roi.mejora_anual)}</p>
               </div>
               {feeMensualContinuidad != null && (
-                <p className="text-[10px] text-center text-slate-400">
-                  Continuidad operativa: {fmtUSD(feeMensualContinuidad)}/mes desde el mes 2
+                <p className="text-[11px] text-center text-slate-300 bg-estratego-ink/50 border border-estratego-border rounded px-2 py-1.5 mt-2">
+                  Continuidad operativa: <strong className="text-slate-100">{fmtUSD(feeMensualContinuidad)}/mes</strong> desde el mes 2
                   {permanenciaMeses ? ` · permanencia mínima ${permanenciaMeses} meses` : ''}.
-                </p>
-              )}
-              {roiPositivo && mesesRecuperacion != null && (
-                <p className="text-[11px] text-center text-slate-300 bg-estratego-success/5 border border-estratego-success/20 rounded px-2 py-1.5">
-                  Recuperas el setup inicial en aproximadamente{' '}
-                  <strong className="text-estratego-success">
-                    {mesesRecuperacion.toFixed(1)} mes
-                    {mesesRecuperacion >= 1.05 ? 'es' : ''}
-                  </strong>
-                  . El mes 1 es onboarding; el sistema entrega su mejora completa hacia el mes 6.
-                </p>
-              )}
-              {!roiPositivo && (
-                <p className="text-[11px] text-center text-slate-300 bg-estratego-gold/5 border border-estratego-gold/20 rounded px-2 py-1.5">
-                  Con tu volumen y conversión actuales, el setup se recupera a{' '}
-                  <strong className="text-estratego-gold">mediano plazo</strong> y el sistema
-                  rinde más fuerte a medida que escalas tus leads. Tu asesor puede ajustar el
-                  plan para acelerar el retorno.
                 </p>
               )}
               <p className="text-[11px] text-slate-400 bg-estratego-ink/40 border border-estratego-border rounded-lg px-3 py-2 flex items-start gap-2">
                 <Icono.Info className="w-3.5 h-3.5 text-estratego-gold shrink-0 mt-0.5" />
                 <span>
-                  <strong className="text-slate-200">Cómo se lee este ROI:</strong>{' '}
-                  mide el retorno sobre el <strong>setup inicial</strong> ({fmtUSD(setupInicial)}),
-                  que es un pago único.
                   {feeMensualContinuidad != null && (
                     <>
-                      {' '}La continuidad de {fmtUSD(feeMensualContinuidad)}/mes (desde el mes 2) se
-                      cobra aparte y{' '}
+                      La continuidad de {fmtUSD(feeMensualContinuidad)}/mes (desde el mes 2){' '}
                       {mejoraCubreFee ? (
                         <>la sostiene la propia mejora: el sistema proyecta cerca de{' '}
-                        <strong className="text-estratego-success">{fmtUSD(mejoraMensualMadura)}/mes</strong>{' '}
-                        de mejora ya maduro, por encima del fee de continuidad.</>
+                          <strong className="text-estratego-success">{fmtUSD(mejoraMensualMadura)}/mes</strong>{' '}
+                          de mejora ya maduro, por encima del fee de continuidad.</>
                       ) : (
                         <>se compara contra la mejora mensual proyectada (~{fmtUSD(mejoraMensualMadura)}/mes
-                        ya maduro).</>
+                          ya maduro).</>
                       )}
                     </>
-                  )}{' '}
-                  El cálculo es <em>(ganancia 12 meses − setup) ÷ setup</em>.
+                  )}
                 </span>
               </p>
             </div>
           </SeccionNumerada>
         </div>
 
-        {/* SECCIÓN 7: NIVEL RECOMENDADO */}
-        {(() => {
-          const planKey = String(roi.plan_recomendado || '').toLowerCase();
-          const plan = PLAN_RESUMEN[planKey];
-          if (!plan) return null;
-          return (
-            <SeccionNumerada
-              numero="8"
-              tono="gold"
-              titulo={`Nivel recomendado: ${plan.nombre}`}
-              descripcion={plan.titulo}
-            >
-              <div className="grid gap-4 md:grid-cols-[1fr,auto]">
-                <div>
-                  <p className="text-[11px] text-slate-400 mb-2">{plan.para_quien}</p>
-                  <p className="text-[11px] uppercase tracking-wider text-slate-300 font-semibold mb-2">
-                    Qué incluye
-                  </p>
-                  <ul className="space-y-1.5">
-                    {plan.incluye.map((item) => (
-                      <li key={item} className="flex items-start gap-2 text-xs text-slate-200">
-                        <span className="shrink-0 mt-0.5 text-estratego-gold">
-                          <Icono.Check className="w-3.5 h-3.5" />
-                        </span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+        {/* SECCIÓN 8: QUÉ PASA DESPUÉS DE APROBAR */}
+        <SeccionNumerada
+          numero="8"
+          tono="gold"
+          titulo="Qué pasa después de aprobar"
+          descripcion="Hay un plan claro — esto no es un salto al vacío"
+        >
+          <div className="grid gap-3 md:grid-cols-5">
+            {[
+              { num: 1, titulo: 'Aprobación', sub: 'Firmas la propuesta y se procesa el primer pago.', dia: 'Día 0' },
+              { num: 2, titulo: 'Onboarding', sub: 'Sesión inicial: entregas accesos, reglas comerciales y materiales.', dia: 'Días 1-3' },
+              { num: 3, titulo: 'Construcción', sub: 'Configuramos canales, agente IA, CRM, tablero y flujos.', dia: 'Semanas 1-3' },
+              { num: 4, titulo: 'Aprobación del flujo', sub: 'Revisas, ajustas y aprobamos el flujo operativo inicial.', dia: 'Semana 3-4' },
+              { num: 5, titulo: 'Puesta en operación', sub: 'El sistema entra en producción con QA semanal el primer mes.', dia: 'Semana 4+' },
+            ].map((paso) => (
+              <div
+                key={paso.num}
+                className="bg-estratego-ink/40 border border-estratego-border rounded-lg p-3 flex flex-col"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-estratego-gold text-estratego-ink font-display font-bold text-xs">
+                    {paso.num}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
+                    {paso.dia}
+                  </span>
                 </div>
-                <div className="bg-estratego-gold/10 border border-estratego-gold/30 rounded-xl p-4 text-center min-w-[180px]">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-400">Inversión inicial</p>
-                  <p className="font-display text-3xl font-bold text-estratego-gold leading-none mt-1">
-                    {fmtUSD(plan.primer_pago)}
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-3">Continuidad desde el mes 2</p>
-                  <p className="font-display text-base font-semibold text-slate-100">
-                    {fmtUSD(plan.mensual)}<span className="text-[11px] text-slate-400 font-normal">/mes</span>
-                  </p>
-                  <p className="text-[10px] text-slate-500 mt-3 border-t border-estratego-border pt-2">
-                    Permanencia mínima: {plan.permanencia} meses
-                  </p>
-                </div>
+                <p className="text-xs text-slate-100 font-semibold leading-tight">{paso.titulo}</p>
+                <p className="text-[10px] text-slate-400 mt-1 leading-tight">{paso.sub}</p>
               </div>
-            </SeccionNumerada>
-          );
-        })()}
+            ))}
+          </div>
+        </SeccionNumerada>
 
-        {/* SECCIÓN 8: GARANTÍA Y DIFERENCIAL */}
+        {/* SECCIÓN 9: GARANTÍA Y DIFERENCIAL */}
         <SeccionNumerada
           numero="9"
           tono="success"
@@ -1166,42 +1097,8 @@ export default function ResultadosDiagnostico({
           </div>
         </SeccionNumerada>
 
-        {/* SECCIÓN 9: PASOS POST-PAGO */}
-        <SeccionNumerada
-          numero="10"
-          tono="gold"
-          titulo="Qué pasa después de aprobar"
-          descripcion="Hay un plan claro — esto no es un salto al vacío"
-        >
-          <div className="grid gap-3 md:grid-cols-5">
-            {[
-              { num: 1, titulo: 'Aprobación', sub: 'Firmas la propuesta y se procesa el primer pago.', dia: 'Día 0' },
-              { num: 2, titulo: 'Onboarding', sub: 'Sesión inicial: entregas accesos, reglas comerciales y materiales.', dia: 'Días 1-3' },
-              { num: 3, titulo: 'Construcción', sub: 'Configuramos canales, agente IA, CRM, tablero y flujos.', dia: 'Semanas 1-3' },
-              { num: 4, titulo: 'Aprobación del flujo', sub: 'Revisas, ajustas y aprobamos el flujo operativo inicial.', dia: 'Semana 3-4' },
-              { num: 5, titulo: 'Puesta en operación', sub: 'El sistema entra en producción con QA semanal el primer mes.', dia: 'Semana 4+' },
-            ].map((paso) => (
-              <div
-                key={paso.num}
-                className="bg-estratego-ink/40 border border-estratego-border rounded-lg p-3 flex flex-col"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-estratego-gold text-estratego-ink font-display font-bold text-xs">
-                    {paso.num}
-                  </span>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
-                    {paso.dia}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-100 font-semibold leading-tight">{paso.titulo}</p>
-                <p className="text-[10px] text-slate-400 mt-1 leading-tight">{paso.sub}</p>
-              </div>
-            ))}
-          </div>
-        </SeccionNumerada>
-
         {/* SECCIÓN 10: DECISIÓN (full width) */}
-        <SeccionNumerada numero="11" tono="slate" titulo="La decisión es tuya">
+        <SeccionNumerada numero="10" tono="slate" titulo="La decisión es tuya">
           <div className="grid gap-3 md:grid-cols-[1fr,auto,1fr]">
             <div className="bg-estratego-danger/10 border border-estratego-danger/30 rounded-xl p-4 flex items-center gap-3">
               <span className="w-10 h-10 rounded-full bg-estratego-danger/20 border border-estratego-danger/40 flex items-center justify-center text-estratego-danger">

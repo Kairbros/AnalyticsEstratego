@@ -201,21 +201,18 @@ export function calcularResultados(diagnostico) {
 
   // Tasas optimizadas (escala 0-10). Caps prudentes:
   //   respuesta máx 9.8/10 (98%), asistencia máx 9.5/10 (95%).
-  const respOpt = Math.min(9.8, Math.max(respMismoDia, respMismoDia * mejoraResp));
-  const reunionesOpt = Math.min(
-    10,
-    Math.max(
-      reunionesDe10,
-      reunionesDe10 * mejoraBook * E.F_followup * E.F_crm,
-    ),
+  const respOpt = Math.max(respMismoDia, Math.min(9.8, respMismoDia * mejoraResp));
+  const reunionesOpt = Math.max(
+    reunionesDe10,
+    Math.min(10, reunionesDe10 * mejoraBook * E.F_followup * E.F_crm),
   );
-  const asistenciaOpt = Math.min(
-    9.5,
-    Math.max(asistenciaDe10, asistenciaDe10 * E.F_show),
+  const asistenciaOpt = Math.max(
+    asistenciaDe10,
+    Math.min(9.5, asistenciaDe10 * E.F_show),
   );
-  const cierresOpt = Math.min(
-    10,
-    Math.max(cierresDe10, cierresDe10 * E.F_close_quality),
+  const cierresOpt = Math.max(
+    cierresDe10,
+    Math.min(10, cierresDe10 * E.F_close_quality),
   );
 
   const contactadosOpt = leadsMes * (respOpt / 10);
@@ -458,11 +455,10 @@ export function calcularResultados(diagnostico) {
   }
 
   // === Costo actual, costo de oportunidad y beneficio esperado =======
-  // Base común: "oportunidades perdidas" = leads que llegan y no cierran.
-  const leadsPerdidosMes = Math.max(0, leadsMes - ventas);
-  // Conversión alcanzable = global del escenario optimizado (realista, con
-  // tope ya aplicado a ventasOpt). Se usa para valorar el costo de oportunidad.
-  const tasaConversionAlcanzable = leadsMes > 0 ? ventasOpt / leadsMes : 0;
+  // Base común: "oportunidades perdidas" = leads que llegan y no cierran (usando valores redondeados que ve el usuario).
+  const leadsPerdidosMes = Math.max(0, Math.round(leadsMes) - Math.round(ventas));
+  // Conversión alcanzable = global del escenario optimizado (redondeado a lo que ve el usuario). Se usa para valorar el costo de oportunidad.
+  const tasaConversionAlcanzable = leadsMes > 0 ? Math.round(ventasOpt) / Math.round(leadsMes) : 0;
   // 1) Costo actual: inversión publicitaria desperdiciada en leads que no
   //    cierran (ya pagaste el costo por lead por cada uno).
   const costoActualMes = leadsPerdidosMes * costoPorLead;
@@ -471,7 +467,7 @@ export function calcularResultados(diagnostico) {
   const costoOportunidadMes = leadsPerdidosMes * tasaConversionAlcanzable * ticket;
   // 3) Beneficio esperado: la mejora realista comprometida (con tope +20% y
   //    ramp-up). Reusa lo ya calculado para no contradecir el ROI.
-  const ventasAdicionalesMes = Math.max(0, ventasOpt - ventas);
+  const ventasAdicionalesMes = Math.max(0, Math.round(ventasOpt) - Math.round(ventas));
   const costos = {
     leads_perdidos_mes: redondear(leadsPerdidosMes, 0),
     costo_por_lead: redondear(costoPorLead),
