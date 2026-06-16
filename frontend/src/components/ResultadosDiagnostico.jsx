@@ -992,10 +992,10 @@ export default function ResultadosDiagnostico({
                   {permanenciaMeses ? ` · permanencia mínima ${permanenciaMeses} meses` : ''}.
                 </p>
               )} */}
-              <p className="text-[11px] text-slate-400 bg-estratego-ink/40 border border-estratego-border rounded-lg px-3 py-2 flex items-start gap-2">
+              {/* <p className="text-[11px] text-slate-400 bg-estratego-ink/40 border border-estratego-border rounded-lg px-3 py-2 flex items-start gap-2">
                 <Icono.Info className="w-3.5 h-3.5 text-estratego-gold shrink-0 mt-0.5" />
                 <span>
-                  {/* {feeMensualContinuidad != null && (
+                  {feeMensualContinuidad != null && (
                     <>
                       La continuidad de {fmtUSD(feeMensualContinuidad)}/mes (desde el mes 2){' '}
                       {mejoraCubreFee ? (
@@ -1007,9 +1007,9 @@ export default function ResultadosDiagnostico({
                           ya maduro).</>
                       )}
                     </>
-                  )} */}
+                  )}
                 </span>
-              </p>
+              </p> */}
             </div>
           </SeccionNumerada>
         </div>
