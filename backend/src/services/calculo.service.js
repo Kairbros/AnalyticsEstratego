@@ -107,16 +107,16 @@ const SENSIBILIDAD_TIEMPO_SECTOR = {
 // y los multiplicadores de las palancas secundarias (seguimiento, CRM,
 // asistencia, cierre por calidad).
 const ESCENARIO_MODERADO = {
-  F_realizacion: 0.60,
+  F_realizacion: 0.70,
   F_followup: 1.10,
   F_show: 1.07,
   F_crm: 1.08,
   F_close_quality: 1.03,
 };
 
-// Cap superior de la promesa Estratego: máximo 20% de mejora sobre
+// Cap superior de la promesa Estratego: máximo 30% de mejora sobre
 // ingresos actuales. Se aplica al final, después de todos los factores.
-const CAP_MEJORA_TOTAL_PCT = 20;
+const CAP_MEJORA_TOTAL_PCT = 30;
 
 function redondear(n, decimales = 2) {
   if (!Number.isFinite(n)) return 0;
@@ -253,7 +253,8 @@ export function calcularResultados(diagnostico) {
   }
 
   const ingBase = ingresosMes;
-  const ingTrasResp = ingresosEmbudo(respOpt, reunionesDe10, asistenciaDe10, cierresDe10);
+  const reunionesTrasRespTime = Math.min(10, reunionesDe10 * mejoraBook);
+  const ingTrasResp = ingresosEmbudo(respOpt, reunionesTrasRespTime, asistenciaDe10, cierresDe10);
   const ingTrasReu = ingresosEmbudo(respOpt, reunionesOpt, asistenciaDe10, cierresDe10);
   const ingTrasAsi = ingresosEmbudo(respOpt, reunionesOpt, asistenciaOpt, cierresDe10);
   const ingTrasCie = ingresosEmbudo(respOpt, reunionesOpt, asistenciaOpt, cierresOpt);
@@ -323,13 +324,13 @@ export function calcularResultados(diagnostico) {
   // del mes 2 el sistema empieza a generar valor y alcanza el 100% del
   // delta proyectado alrededor del mes 6.
   //
-  //   Mes 1 → 0%     (onboarding)
-  //   Mes 2 → 15%
-  //   Mes 3 → 40%
-  //   Mes 4 → 70%
-  //   Mes 5 → 90%
+  //   Mes 1 → 15%    (onboarding parcial / arranque rápido)
+  //   Mes 2 → 35%
+  //   Mes 3 → 60%
+  //   Mes 4 → 85%
+  //   Mes 5 → 95%
   //   Mes 6+ → 100%  (sostenido)
-  const CURVA_ADOPCION = [0.00, 0.15, 0.40, 0.70, 0.90, 1.00];
+  const CURVA_ADOPCION = [0.15, 0.35, 0.60, 0.85, 0.95, 1.00];
   function factorAdopcion(mesIndex /* 0-indexed */) {
     if (mesIndex < CURVA_ADOPCION.length) return CURVA_ADOPCION[mesIndex];
     return 1.0;

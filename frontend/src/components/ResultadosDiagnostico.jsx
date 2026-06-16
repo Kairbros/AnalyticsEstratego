@@ -447,6 +447,11 @@ export default function ResultadosDiagnostico({
     )
   );
 
+  const leadsPerdidosPorDemora = Math.min(
+    embudo.leads,
+    Math.round(embudo.leads * (noRespondenPct / 100))
+  );
+
   const factorMejora = embudo.ventas > 0 && opt.ventas > 0
     ? +(opt.ventas / embudo.ventas).toFixed(1)
     : null;
@@ -707,9 +712,9 @@ export default function ResultadosDiagnostico({
                 max={maxEmbudo}
                 tono="warning"
                 perdida={{
-                  label: `${fmtNum(embudo.leads - embudo.contactados)} sin respuesta`,
+                  label: `${fmtNum(leadsPerdidosPorDemora)} sin resp. o con demora`,
                   usd: recResponder,
-                  tooltip: `Parte de la mejora mensual realista (con tope y ramp-up) que aporta corregir esta etapa: ${fmtNum(embudo.leads - embudo.contactados)} leads sin respuesta el mismo día. Proporción tomada del desglose de mejora del sistema.`,
+                  tooltip: `Parte de la mejora mensual realista (con tope y ramp-up) que aporta corregir esta etapa: responder a tiempo y atender a los leads sin respuesta el mismo día. Proporción tomada del desglose de mejora del sistema.`,
                 }}
               />
               <FilaEmbudoActual
