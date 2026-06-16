@@ -82,11 +82,10 @@ function factoresRespuesta(min) {
   if (m <= 1) return { contact: 1.10, booking: 1.08, close: 1.04 };
   if (m <= 5) return { contact: 1.0, booking: 1.0, close: 1.0 };
   if (m <= 10) return { contact: 0.85, booking: 0.82, close: 0.92 };
-  if (m <= 30) return { contact: 0.65, booking: 0.62, close: 0.80 };
-  if (m <= 60) return { contact: 0.52, booking: 0.50, close: 0.75 };
-  if (m <= 240) return { contact: 0.42, booking: 0.38, close: 0.68 };
-  if (m <= 1440) return { contact: 0.32, booking: 0.28, close: 0.60 };
-  return { contact: 0.20, booking: 0.18, close: 0.50 };
+  if (m <= 30) return { contact: 0.75, booking: 0.72, close: 0.85 };
+  if (m <= 60) return { contact: 0.70, booking: 0.68, close: 0.80 };
+  if (m <= 240) return { contact: 0.65, booking: 0.62, close: 0.75 };
+  return { contact: 0.60, booking: 0.58, close: 0.70 };
 }
 
 // Sensibilidad al tiempo por sector — multiplica el factor de mejora.
@@ -200,11 +199,11 @@ export function calcularResultados(diagnostico) {
   // separada para no doble-contar.
 
   // Tasas optimizadas (escala 0-10). Caps prudentes:
-  //   respuesta máx 9.8/10 (98%), asistencia máx 9.5/10 (95%).
-  const respOpt = Math.max(respMismoDia, Math.min(9.8, respMismoDia * mejoraResp));
+  //   respuesta máx 9.9/10 (99%), agendamiento máx 8.0/10 (80%), asistencia máx 9.5/10 (95%).
+  const respOpt = Math.max(respMismoDia, Math.min(9.9, respMismoDia * mejoraResp));
   const reunionesOpt = Math.max(
     reunionesDe10,
-    Math.min(10, reunionesDe10 * mejoraBook * E.F_followup * E.F_crm),
+    Math.min(8.0, reunionesDe10 * mejoraBook * E.F_followup * E.F_crm),
   );
   const asistenciaOpt = Math.max(
     asistenciaDe10,

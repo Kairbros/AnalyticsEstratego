@@ -80,17 +80,16 @@ const BLOQUE_B_INICIAL = {
 // Penalización aplicada al potencial de contacto/agendamiento por velocidad
 // de respuesta. Coincide con la matriz `factoresRespuesta` del backend.
 // Valor = (1 - F_contact) * 100, capado a 0 cuando la velocidad es óptima.
-//   0-5 min: 0%, 5-10 min: 15%, 10-30 min: 35%, 30-60 min: 48%,
-//   1-4 h: 58%, 4-24 h: 68%, >24 h: 80%
+//   0-5 min: 0%, 5-10 min: 15%, 10-30 min: 25%, 30-60 min: 30%,
+//   1-4 h: 35%, >4 h: 40%
 export function calcularPenalizacionRespuesta(minutos) {
   const m = Number(minutos);
   if (!Number.isFinite(m) || m <= 5) return 0;
   if (m <= 10) return 15;
-  if (m <= 30) return 35;
-  if (m <= 60) return 48;
-  if (m <= 240) return 58;
-  if (m <= 1440) return 68;
-  return 80;
+  if (m <= 30) return 25;
+  if (m <= 60) return 30;
+  if (m <= 240) return 35;
+  return 40;
 }
 
 function tiempoRespuestaEnMinutos(valor, unidad) {

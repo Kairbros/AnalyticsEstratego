@@ -901,8 +901,10 @@ export default function ResultadosDiagnostico({
                   `${fmtNum(leadsPerdidosMes)} leads no cerrados × ${fmtUSD(ticket)} ticket × ${tasaAlcanzablePct}% de conversión alcanzable. Es el techo a régimen, no lo comprometido.`
                 )}
               >
+                {/* Sobre {fmtNum(leadsPerdidosMes)} leads no cerrados × {tasaAlcanzablePct}% conv. × ticket {fmtUSD(ticket)} */}
                 A tu conversión alcanzable ({tasaAlcanzablePct}%) × ticket {fmtUSD(ticket)}
               </p>
+
             </div>
 
             {/* Beneficio esperado */}
