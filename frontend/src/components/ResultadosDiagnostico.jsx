@@ -833,7 +833,7 @@ export default function ResultadosDiagnostico({
               </div>
             )} */}
           </div>
-          {factorMejora && (
+          {/* {factorMejora && (
             <p className="text-[11px] text-slate-400 mt-3 bg-estratego-ink/40 border border-estratego-border rounded-lg px-3 py-2 flex items-start gap-2">
               <Icono.Info className="w-3.5 h-3.5 text-estratego-gold shrink-0 mt-0.5" />
               <span>
@@ -844,7 +844,7 @@ export default function ResultadosDiagnostico({
                 número de ventas: {fmtNum(embudo.ventas)} → {fmtNum(opt.ventas)} con el mismo flujo de leads.
               </span>
             </p>
-          )}
+          )} */}
         </SeccionNumerada>
 
         {/* SECCIÓN 5: COSTO ACTUAL · COSTO DE OPORTUNIDAD · BENEFICIO ESPERADO */}
@@ -966,12 +966,12 @@ export default function ResultadosDiagnostico({
                 mes a mes.
               </span>
             </p>
-            {penalizacionPct > 0 && (
+            {/* {penalizacionPct > 0 && (
               <p className="text-[11px] text-estratego-danger bg-estratego-danger/10 border border-estratego-danger/20 rounded-lg px-3 py-2 mt-2">
                 Penalización por velocidad de respuesta ({tiempoRespMin} min):{' '}
                 <strong>−{penalizacionPct}%</strong> sobre el potencial bruto.
               </p>
-            )}
+            )} */}
           </SeccionNumerada>
 
           <SeccionNumerada numero="7" tono="success" titulo="ROI del sistema">
@@ -986,16 +986,16 @@ export default function ResultadosDiagnostico({
                 <p className="text-[10px] text-slate-400 uppercase tracking-wider">Ganancia 12 meses</p>
                 <p className="font-display text-xl font-bold text-estratego-success">{fmtUSD(roi.mejora_anual)}</p>
               </div>
-              {feeMensualContinuidad != null && (
+              {/* {feeMensualContinuidad != null && (
                 <p className="text-[11px] text-center text-slate-300 bg-estratego-ink/50 border border-estratego-border rounded px-2 py-1.5 mt-2">
                   Continuidad operativa: <strong className="text-slate-100">{fmtUSD(feeMensualContinuidad)}/mes</strong> desde el mes 2
                   {permanenciaMeses ? ` · permanencia mínima ${permanenciaMeses} meses` : ''}.
                 </p>
-              )}
+              )} */}
               <p className="text-[11px] text-slate-400 bg-estratego-ink/40 border border-estratego-border rounded-lg px-3 py-2 flex items-start gap-2">
                 <Icono.Info className="w-3.5 h-3.5 text-estratego-gold shrink-0 mt-0.5" />
                 <span>
-                  {feeMensualContinuidad != null && (
+                  {/* {feeMensualContinuidad != null && (
                     <>
                       La continuidad de {fmtUSD(feeMensualContinuidad)}/mes (desde el mes 2){' '}
                       {mejoraCubreFee ? (
@@ -1007,7 +1007,7 @@ export default function ResultadosDiagnostico({
                           ya maduro).</>
                       )}
                     </>
-                  )}
+                  )} */}
                 </span>
               </p>
             </div>
