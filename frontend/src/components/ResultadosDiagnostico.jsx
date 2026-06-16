@@ -433,9 +433,19 @@ export default function ResultadosDiagnostico({
   const recAsistir = repartir(2);
   const recCerrar = repartir(3);
 
-  const noRespondenPct = embudo.leads
-    ? Math.round(((embudo.leads - embudo.contactados) / embudo.leads) * 100)
+  const penalizacionPct = opt.penalizacion_tiempo_respuesta_pct || 0;
+  const tiempoRespMin = opt.tiempo_respuesta_min || 0;
+
+  const respondeMismoDiaPct = embudo.leads
+    ? (embudo.contactados / embudo.leads) * 100
     : 0;
+  const noRespondenPct = Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round(100 - (respondeMismoDiaPct * (100 - penalizacionPct)) / 100)
+    )
+  );
 
   const factorMejora = embudo.ventas > 0 && opt.ventas > 0
     ? +(opt.ventas / embudo.ventas).toFixed(1)
@@ -470,9 +480,6 @@ export default function ResultadosDiagnostico({
         optimizado: Math.round(ingresosOpt * (i + 1)),
       }))
   );
-
-  const penalizacionPct = opt.penalizacion_tiempo_respuesta_pct || 0;
-  const tiempoRespMin = opt.tiempo_respuesta_min || 0;
 
   // Se reporta el payback siempre en meses (con un decimal). Mostrar días
   // no era realista — un sistema con ramp-up no se paga en horas.
@@ -669,14 +676,14 @@ export default function ResultadosDiagnostico({
             <div className="bg-estratego-ink/60 border border-estratego-border rounded-xl p-4">
               <p className="text-sm text-slate-200">
                 De cada 100 personas interesadas,{' '}
-                <strong className="text-estratego-danger">{noRespondenPct} NO</strong> reciben respuesta.
+                <strong className="text-estratego-danger">{noRespondenPct} se pierden o enfrían</strong> por demoras o falta de respuesta.
               </p>
               <div className="my-3">
                 <PersonasGrid totalNoResponden={noRespondenPct} total={100} />
               </div>
               <p className="text-[11px] text-slate-400 border-t border-estratego-border pt-2 mt-2 flex items-start gap-1.5">
                 <Icono.Equis className="w-3.5 h-3.5 text-estratego-danger shrink-0 mt-0.5" />
-                <span>{noRespondenPct} oportunidades que se enfrían antes de que puedas hablar con ellas.</span>
+                <span>{noRespondenPct} oportunidades que se pierden o enfrían antes de que puedas hablar con ellas.</span>
               </p>
             </div>
           </div>
