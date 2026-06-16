@@ -324,13 +324,8 @@ export function calcularResultados(diagnostico) {
   // del mes 2 el sistema empieza a generar valor y alcanza el 100% del
   // delta proyectado alrededor del mes 6.
   //
-  //   Mes 1 → 15%    (onboarding parcial / arranque rápido)
-  //   Mes 2 → 35%
-  //   Mes 3 → 60%
-  //   Mes 4 → 85%
-  //   Mes 5 → 95%
-  //   Mes 6+ → 100%  (sostenido)
-  const CURVA_ADOPCION = [0.15, 0.35, 0.60, 0.85, 0.95, 1.00];
+  //   Mes 1+ → 100% (mejora directa e inmediata)
+  const CURVA_ADOPCION = [1.00, 1.00, 1.00, 1.00, 1.00, 1.00];
   function factorAdopcion(mesIndex /* 0-indexed */) {
     if (mesIndex < CURVA_ADOPCION.length) return CURVA_ADOPCION[mesIndex];
     return 1.0;

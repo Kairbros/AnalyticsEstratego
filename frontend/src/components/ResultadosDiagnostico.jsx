@@ -936,10 +936,10 @@ export default function ResultadosDiagnostico({
               <p
                 className="text-[10px] text-slate-500 mt-3 border-t border-estratego-border pt-2 cursor-help"
                 {...titleAttr(
-                  'Mejora comprometida con tope prudente (+20%) y curva de adopción. El primer año incluye onboarding; a régimen rinde más.'
+                  'Mejora comprometida con tope prudente.'
                 )}
               >
-                ≈ {fmtNum(ventasAdicionalesMes)} ventas más/mes · con tope y ramp-up
+                ≈ {fmtNum(ventasAdicionalesMes)} ventas más/mes
               </p>
             </div>
           </div>
@@ -948,7 +948,7 @@ export default function ResultadosDiagnostico({
             <span>
               El <strong className="text-amber-400">costo de oportunidad</strong> es el techo
               alcanzable a tu tasa optimizada; el <strong className="text-estratego-success">beneficio
-                esperado</strong> es lo que comprometemos de forma prudente (con tope y ramp-up).
+                esperado</strong> es lo que proyectamos recuperar con el plan optimizado.
               La diferencia entre ambos es tu margen de crecimiento al escalar.
             </span>
           </p>
@@ -975,11 +975,9 @@ export default function ResultadosDiagnostico({
             <p className="text-[11px] text-slate-400 mt-2 bg-estratego-ink/40 border border-estratego-border rounded-lg px-3 py-2 flex items-start gap-2">
               <Icono.Info className="w-3.5 h-3.5 text-estratego-gold shrink-0 mt-0.5" />
               <span>
-                Cada línea acumula ingresos mes a mes. La curva dorada arranca igual
-                a la gris (mes 1 = onboarding, 0% de mejora) y se separa
-                gradualmente hasta alcanzar el potencial completo hacia el mes 6.
-                Por eso la ganancia anual no es 12 × mejora mensual: refleja la
-                adopción real del sistema.
+                Cada línea acumula ingresos mes a mes. La línea dorada muestra el ingreso
+                optimizado acumulado sumando la mejora de forma inmediata y constante
+                mes a mes.
               </span>
             </p>
             {penalizacionPct > 0 && (
