@@ -162,7 +162,7 @@ export function calcularResultados(diagnostico) {
   const contactados = leadsMes * (respMismoDia / 10);
   const reuniones = contactados * (reunionesDe10 / 10);
   const asistidas = reuniones * (asistenciaDe10 / 10);
-  const ventas = asistidas * (cierresDe10 / 10);
+  const ventas = Math.round(asistidas * (cierresDe10 / 10));
   const ingresosMes = ventas * ticket;
   const tasaConversionGlobal = leadsMes > 0 ? ventas / leadsMes : 0;
 
@@ -217,18 +217,19 @@ export function calcularResultados(diagnostico) {
   const contactadosOpt = leadsMes * (respOpt / 10);
   const reunionesOptAbs = contactadosOpt * (reunionesOpt / 10);
   const asistidasOpt = reunionesOptAbs * (asistenciaOpt / 10);
-  const ventasOptProyectado = asistidasOpt * (cierresOpt / 10);
+  const ventasOptProyectado = Math.round(asistidasOpt * (cierresOpt / 10));
   const ingresosMesOptBruto = ventasOptProyectado * ticket;
   const mejoraMesProyectada = Math.max(0, ingresosMesOptBruto - ingresosMes);
 
   // Cap por promesa Estratego: máx +30% sobre los ingresos actuales.
   const mejoraMesTope = ingresosMes * (CAP_MEJORA_TOTAL_PCT / 100);
-  const mejoraMes = Math.min(mejoraMesProyectada, mejoraMesTope);
-  const factorCap = mejoraMesProyectada > 0 ? mejoraMes / mejoraMesProyectada : 1;
+  const mejoraMesPreCap = Math.min(mejoraMesProyectada, mejoraMesTope);
+  const factorCap = mejoraMesProyectada > 0 ? mejoraMesPreCap / mejoraMesProyectada : 1;
   // Aplica el cap proporcionalmente a las ventas optimizadas para mantener
   // consistencia entre el embudo mostrado y los ingresos mostrados.
-  const ventasOpt = ventas + (ventasOptProyectado - ventas) * factorCap;
-  const ingresosMesOpt = ingresosMes + mejoraMes;
+  const ventasOpt = Math.round(ventas + (ventasOptProyectado - ventas) * factorCap);
+  const ingresosMesOpt = ventasOpt * ticket;
+  const mejoraMes = ingresosMesOpt - ingresosMes;
   // mejoraAnual TEÓRICA (delta sostenido × 12). La mejora REAL después de
   // aplicar ramp-up se calcula más abajo en `mejoraAnualReal`.
   const mejoraAnualTeorica = mejoraMes * 12;

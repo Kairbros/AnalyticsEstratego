@@ -402,29 +402,18 @@ export default function ResultadosDiagnostico({
   const mejoraAnualReal = roi.mejora_anual ?? opt.mejora_anual ?? 0;
   const mejoraMensualReal = mejoraAnualReal / 12;
 
-  // Reparto por palanca usando el desglose realista del backend (usa las
-  // tasas optimizadas, no el techo teórico). Lo escalamos para que sume
-  // exactamente el mensual realista, preservando las proporciones.
-  const desgloseBackend = Array.isArray(resultados.desglose_mejora)
-    ? resultados.desglose_mejora.filter((d) => d.tipo === 'mejora')
-    : [];
-  const sumaDesglose = desgloseBackend.reduce(
-    (s, d) => s + (Number(d.valor) || 0),
-    0,
-  );
-  // Proporción por palanca: del desglose si existe; si no (diagnóstico viejo),
-  // caemos a la proporción teórica de pérdidas por etapa.
+  const penalizacionPct = opt.penalizacion_tiempo_respuesta_pct || 0;
+  const tiempoRespMin = opt.tiempo_respuesta_min || 0;
+
+  // Proporción por palanca basada en pérdidas teóricas por etapa, incluyendo el impacto de velocidad en la primera respuesta.
   const propTeorica = (() => {
-    const pResp = fuga.fuga_por_no_responder_mes || 0;
+    const pResp = (fuga.fuga_por_no_responder_mes || 0) + (embudo.leads * (penalizacionPct / 100) * ticket * (embudo.ventas / Math.max(1, embudo.leads)));
     const pAgenda = sinAgendar * ticket * (embudo.ventas / Math.max(1, embudo.contactados));
     const pShow = noShow * ticket * (embudo.ventas / Math.max(1, embudo.reuniones));
     const pCierre = sinCerrar * ticket;
     return [pResp, pAgenda, pShow, pCierre];
   })();
-  const pesos =
-    sumaDesglose > 0
-      ? desgloseBackend.map((d) => Number(d.valor) || 0)
-      : propTeorica;
+  const pesos = propTeorica;
   const sumaPesos = pesos.reduce((s, v) => s + v, 0);
   const repartir = (i) =>
     sumaPesos > 0 ? mejoraMensualReal * (pesos[i] / sumaPesos) : 0;
@@ -432,9 +421,6 @@ export default function ResultadosDiagnostico({
   const recAgendar = repartir(1);
   const recAsistir = repartir(2);
   const recCerrar = repartir(3);
-
-  const penalizacionPct = opt.penalizacion_tiempo_respuesta_pct || 0;
-  const tiempoRespMin = opt.tiempo_respuesta_min || 0;
 
   const respondeMismoDiaPct = embudo.leads
     ? (embudo.contactados / embudo.leads) * 100
