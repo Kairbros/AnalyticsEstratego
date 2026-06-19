@@ -433,10 +433,14 @@ export default function ResultadosDiagnostico({
     )
   );
 
-  const leadsPerdidosPorDemora = Math.min(
-    embudo.leads,
-    Math.round(embudo.leads * (noRespondenPct / 100))
+  const contactadosEfectivos = Math.max(
+    embudo.reuniones,
+    embudo.leads - Math.min(
+      embudo.leads,
+      Math.round(embudo.leads * (noRespondenPct / 100))
+    )
   );
+  const leadsPerdidosFinal = embudo.leads - contactadosEfectivos;
 
   const factorMejora = embudo.ventas > 0 && opt.ventas > 0
     ? +(opt.ventas / embudo.ventas).toFixed(1)
@@ -694,11 +698,11 @@ export default function ResultadosDiagnostico({
                 paso="2"
                 etiqueta="Respondidos"
                 sub="Respuesta el mismo día"
-                valor={embudo.contactados}
+                valor={contactadosEfectivos}
                 max={maxEmbudo}
                 tono="warning"
                 perdida={{
-                  label: `${fmtNum(leadsPerdidosPorDemora)} sin resp. o con demora`,
+                  label: `${fmtNum(leadsPerdidosFinal)} sin resp. o con demora`,
                   usd: recResponder,
                   tooltip: `Parte de la mejora mensual realista (con tope y ramp-up) que aporta corregir esta etapa: responder a tiempo y atender a los leads sin respuesta el mismo día. Proporción tomada del desglose de mejora del sistema.`,
                 }}
