@@ -795,7 +795,7 @@ export default function ResultadosDiagnostico({
               <p className="text-center text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-2">Tu embudo hoy</p>
               <div className="space-y-1">
                 <FilaEmbudoCompacta pct={100} etiqueta="Leads que llegan" valor={embudo.leads} max={maxComparativo} tono="actual" />
-                <FilaEmbudoCompacta pct={Math.round((embudo.contactados / Math.max(1, embudo.leads)) * 100)} etiqueta="Respondidos" valor={embudo.contactados} max={maxComparativo} tono="actual" />
+                <FilaEmbudoCompacta pct={Math.round((contactadosEfectivos / Math.max(1, embudo.leads)) * 100)} etiqueta="Respondidos" valor={contactadosEfectivos} max={maxComparativo} tono="actual" />
                 <FilaEmbudoCompacta pct={Math.round((embudo.reuniones / Math.max(1, embudo.leads)) * 100)} etiqueta="Reuniones agendadas" valor={embudo.reuniones} max={maxComparativo} tono="actual" />
                 <FilaEmbudoCompacta pct={Math.round((embudo.asistidas / Math.max(1, embudo.leads)) * 100)} etiqueta="Asisten" valor={embudo.asistidas} max={maxComparativo} tono="actual" />
                 <FilaEmbudoCompacta pct={Math.round((embudo.ventas / Math.max(1, embudo.leads)) * 100)} etiqueta="Ventas cerradas" valor={embudo.ventas} max={maxComparativo} tono="actual" />
