@@ -433,14 +433,22 @@ export default function ResultadosDiagnostico({
     )
   );
 
-  const contactadosEfectivos = Math.max(
-    embudo.reuniones,
-    embudo.leads - Math.min(
-      embudo.leads,
-      Math.round(embudo.leads * (noRespondenPct / 100))
-    )
+  const penalizacionRespondidosPct = penalizacionPct * 0.4; // El tiempo de respuesta afecta en menor medida (40%) a respondidos
+  const penalizacionAgendadosPct = penalizacionPct * 0.8; // El tiempo de respuesta afecta en mayor medida (80%) a agendados
+
+  const reunionesEfectivas = Math.max(
+    embudo.asistidas,
+    Math.round(embudo.reuniones * (1 - penalizacionAgendadosPct / 100))
   );
+
+  const contactadosEfectivos = Math.max(
+    reunionesEfectivas,
+    Math.round(embudo.contactados * (1 - penalizacionRespondidosPct / 100))
+  );
+
   const leadsPerdidosFinal = embudo.leads - contactadosEfectivos;
+  const sinAgendarEfectivo = Math.max(0, contactadosEfectivos - reunionesEfectivas);
+  const noShowEfectivo = Math.max(0, reunionesEfectivas - embudo.asistidas);
 
   const factorMejora = embudo.ventas > 0 && opt.ventas > 0
     ? +(opt.ventas / embudo.ventas).toFixed(1)
@@ -704,20 +712,20 @@ export default function ResultadosDiagnostico({
                 perdida={{
                   label: `${fmtNum(leadsPerdidosFinal)} sin resp. o con demora`,
                   usd: recResponder,
-                  tooltip: `Parte de la mejora mensual realista (con tope y ramp-up) que aporta corregir esta etapa: responder a tiempo y atender a los leads sin respuesta el mismo día. Proporción tomada del desglose de mejora del sistema.`,
+                  tooltip: `Parte de la mejora mensual realista que aporta atender a los leads sin respuesta el mismo día e incrementar la velocidad de respuesta. Proporción tomada del desglose de mejora.`,
                 }}
               />
               <FilaEmbudoActual
                 paso="3"
                 etiqueta="Reuniones agendadas"
                 sub="Logramos agendar"
-                valor={embudo.reuniones}
+                valor={reunionesEfectivas}
                 max={maxEmbudo}
                 tono="warning"
                 perdida={{
-                  label: `${fmtNum(sinAgendar)} sin agendar`,
+                  label: `${fmtNum(sinAgendarEfectivo)} sin agendar (o por demora)`,
                   usd: recAgendar,
-                  tooltip: `Parte de la mejora mensual realista que aporta agendar más reuniones: hoy ${fmtNum(sinAgendar)} contactados no agendan. Proporción tomada del desglose de mejora del sistema.`,
+                  tooltip: `Parte de la mejora mensual realista que aporta agendar más reuniones (incluyendo evitar que los leads se enfríen por demora). Proporción tomada del desglose de mejora.`,
                 }}
               />
               <FilaEmbudoActual
@@ -728,9 +736,9 @@ export default function ResultadosDiagnostico({
                 max={maxEmbudo}
                 tono="danger"
                 perdida={{
-                  label: `${fmtNum(noShow)} no-shows`,
+                  label: `${fmtNum(noShowEfectivo)} no-shows`,
                   usd: recAsistir,
-                  tooltip: `Parte de la mejora mensual realista que aporta reducir no-shows: hoy ${fmtNum(noShow)} agendados no asisten. Proporción tomada del desglose de mejora del sistema.`,
+                  tooltip: `Parte de la mejora mensual realista que aporta reducir no-shows: hoy ${fmtNum(noShowEfectivo)} agendados no asisten. Proporción tomada del desglose de mejora del sistema.`,
                 }}
               />
               <FilaEmbudoActual
@@ -796,7 +804,7 @@ export default function ResultadosDiagnostico({
               <div className="space-y-1">
                 <FilaEmbudoCompacta pct={100} etiqueta="Leads que llegan" valor={embudo.leads} max={maxComparativo} tono="actual" />
                 <FilaEmbudoCompacta pct={Math.round((contactadosEfectivos / Math.max(1, embudo.leads)) * 100)} etiqueta="Respondidos" valor={contactadosEfectivos} max={maxComparativo} tono="actual" />
-                <FilaEmbudoCompacta pct={Math.round((embudo.reuniones / Math.max(1, embudo.leads)) * 100)} etiqueta="Reuniones agendadas" valor={embudo.reuniones} max={maxComparativo} tono="actual" />
+                <FilaEmbudoCompacta pct={Math.round((reunionesEfectivas / Math.max(1, embudo.leads)) * 100)} etiqueta="Reuniones agendadas" valor={reunionesEfectivas} max={maxComparativo} tono="actual" />
                 <FilaEmbudoCompacta pct={Math.round((embudo.asistidas / Math.max(1, embudo.leads)) * 100)} etiqueta="Asisten" valor={embudo.asistidas} max={maxComparativo} tono="actual" />
                 <FilaEmbudoCompacta pct={Math.round((embudo.ventas / Math.max(1, embudo.leads)) * 100)} etiqueta="Ventas cerradas" valor={embudo.ventas} max={maxComparativo} tono="actual" />
               </div>
