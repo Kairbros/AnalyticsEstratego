@@ -28,6 +28,40 @@ export default function ClientesPage() {
   const [copiado, setCopiado] = useState(false);
   const [regenerandoId, setRegenerandoId] = useState(null);
 
+  // States for Demo request
+  const [mostrarModalDemo, setMostrarModalDemo] = useState(false);
+  const [demoForm, setDemoForm] = useState({ nombre: '', telefono: '' });
+  const [enviandoDemo, setEnviandoDemo] = useState(false);
+  const [mensajeDemo, setMensajeDemo] = useState('');
+
+  async function handleDemoSubmit(e) {
+    e.preventDefault();
+    setEnviandoDemo(true);
+    try {
+      // Placeholder del webhook solicitado por el usuario
+      const webhookUrl = 'https://webhook.site/placeholder-demo-request';
+      console.log('Enviando solicitud de demo a webhook:', webhookUrl, demoForm);
+      
+      // Simulamos la llamada al webhook por ahora
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Ejemplo de fetch real:
+      /*
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(demoForm)
+      });
+      */
+
+      setMensajeDemo('¡Solicitud de demo enviada con éxito!');
+    } catch (err) {
+      setMensajeDemo('Hubo un error al enviar la solicitud.');
+    } finally {
+      setEnviandoDemo(false);
+    }
+  }
+
   async function cargar() {
     setCargando(true);
     setErrorCarga('');
@@ -107,6 +141,24 @@ export default function ClientesPage() {
   return (
     <Layout>
       <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-estratego-border pb-4">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-slate-100">Panel de Vendedor</h1>
+            <p className="text-sm text-slate-400">Gestiona tus clientes y realiza diagnósticos.</p>
+          </div>
+          <div>
+            <button
+              onClick={() => setMostrarModalDemo(true)}
+              className="bg-gradient-to-r from-estratego-gold to-yellow-500 hover:from-estratego-gold-hover hover:to-yellow-400 text-estratego-ink font-semibold rounded-xl px-5 py-2.5 text-sm transition-all shadow-glow hover:scale-[1.02] flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+              </svg>
+              <span>Solicitar Demo</span>
+            </button>
+          </div>
+        </div>
+
         <section className="card">
           <h2 className="font-display text-xl font-semibold mb-1 text-slate-100">Registrar cliente</h2>
           <p className="text-sm text-slate-400 mb-4">
@@ -302,6 +354,109 @@ export default function ClientesPage() {
           )}
         </section>
       </div>
+
+      {/* Modal de Solicitar Demo */}
+      {mostrarModalDemo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="card w-full max-w-md border border-estratego-border bg-estratego-surface shadow-glow">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display text-xl font-bold text-slate-100 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-estratego-gold">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+                </svg>
+                Solicitar Demo
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setMostrarModalDemo(false);
+                  setDemoForm({ nombre: '', telefono: '' });
+                  setMensajeDemo('');
+                }}
+                className="text-slate-400 hover:text-slate-200 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {mensajeDemo ? (
+              <div className="space-y-4 py-4 text-center">
+                <div className="mx-auto w-12 h-12 rounded-full bg-estratego-success/10 flex items-center justify-center text-estratego-success">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                </div>
+                <p className="text-sm text-slate-300">{mensajeDemo}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMostrarModalDemo(false);
+                    setDemoForm({ nombre: '', telefono: '' });
+                    setMensajeDemo('');
+                  }}
+                  className="btn-gold w-full mt-2"
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleDemoSubmit} className="space-y-4">
+                <p className="text-xs text-slate-400">
+                  Ingresa los datos de contacto para solicitar la demostración del sistema.
+                </p>
+                
+                <div className="flex flex-col">
+                  <label className="text-xs font-medium text-slate-300 mb-1">Nombre Completo *</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={demoForm.nombre}
+                    onChange={(e) => setDemoForm(f => ({ ...f, nombre: e.target.value }))}
+                    required
+                    className="input"
+                    placeholder="Ej. Juan Pérez"
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-xs font-medium text-slate-300 mb-1">Número de Teléfono *</label>
+                  <input
+                    type="tel"
+                    name="telefono"
+                    value={demoForm.telefono}
+                    onChange={(e) => setDemoForm(f => ({ ...f, telefono: e.target.value }))}
+                    required
+                    className="input"
+                    placeholder="Ej. +57 300 123 4567"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarModalDemo(false);
+                      setDemoForm({ nombre: '', telefono: '' });
+                    }}
+                    className="w-1/2 btn-ghost py-2 text-sm"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={enviandoDemo}
+                    className="w-1/2 btn-gold py-2 text-sm"
+                  >
+                    {enviandoDemo ? 'Enviando…' : 'Solicitar'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
