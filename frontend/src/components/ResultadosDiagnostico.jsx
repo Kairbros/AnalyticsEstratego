@@ -429,22 +429,12 @@ export default function ResultadosDiagnostico({
     100,
     Math.max(
       0,
-      Math.round(100 - (respondeMismoDiaPct * (100 - penalizacionPct)) / 100)
+      Math.round(100 - respondeMismoDiaPct)
     )
   );
 
-  const penalizacionRespondidosPct = penalizacionPct * 0.4; // El tiempo de respuesta afecta en menor medida (40%) a respondidos
-  const penalizacionAgendadosPct = penalizacionPct * 0.8; // El tiempo de respuesta afecta en mayor medida (80%) a agendados
-
-  const reunionesEfectivas = Math.max(
-    embudo.asistidas,
-    Math.round(embudo.reuniones * (1 - penalizacionAgendadosPct / 100))
-  );
-
-  const contactadosEfectivos = Math.max(
-    reunionesEfectivas,
-    Math.round(embudo.contactados * (1 - penalizacionRespondidosPct / 100))
-  );
+  const reunionesEfectivas = embudo.reuniones;
+  const contactadosEfectivos = embudo.contactados;
 
   const leadsPerdidosFinal = embudo.leads - contactadosEfectivos;
   const sinAgendarEfectivo = Math.max(0, contactadosEfectivos - reunionesEfectivas);
