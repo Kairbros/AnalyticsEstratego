@@ -33,30 +33,40 @@ export default function ClientesPage() {
   const [demoForm, setDemoForm] = useState({ nombre: '', telefono: '' });
   const [enviandoDemo, setEnviandoDemo] = useState(false);
   const [mensajeDemo, setMensajeDemo] = useState('');
+  const [estadoDemo, setEstadoDemo] = useState(null); // null | 'success' | 'error'
 
   async function handleDemoSubmit(e) {
     e.preventDefault();
     setEnviandoDemo(true);
+    setMensajeDemo('');
+    setEstadoDemo(null);
     try {
-      // Placeholder del webhook solicitado por el usuario
-      const webhookUrl = 'https://webhook.site/placeholder-demo-request';
-      console.log('Enviando solicitud de demo a webhook:', webhookUrl, demoForm);
+      const cleanedTelefono = demoForm.telefono.replace(/\D/g, '');
+      const webhookUrl = 'https://bestai.bestvoiper.com/api/outbound/webhook/5474cf64da846350cb51a278c35cecd9e399bd1e27a3a0d0da97bd41aabab47d';
       
-      // Simulamos la llamada al webhook por ahora
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Ejemplo de fetch real:
-      /*
-      await fetch(webhookUrl, {
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(demoForm)
+        body: JSON.stringify({ telefono: cleanedTelefono })
       });
-      */
 
-      setMensajeDemo('¡Solicitud de demo enviada con éxito!');
+      if (response.status === 200) {
+        setEstadoDemo('success');
+        setMensajeDemo('Debes esperar unos minutos.');
+      } else {
+        setEstadoDemo('error');
+        let errorDetails = '';
+        try {
+          const data = await response.json();
+          errorDetails = data.message || data.error || JSON.stringify(data);
+        } catch {
+          errorDetails = `HTTP ${response.status}: ${response.statusText || 'Error desconocido'}`;
+        }
+        setMensajeDemo(`No se pudo procesar la solicitud: ${errorDetails}`);
+      }
     } catch (err) {
-      setMensajeDemo('Hubo un error al enviar la solicitud.');
+      setEstadoDemo('error');
+      setMensajeDemo(`Error de red o conexión: ${err.message || err}`);
     } finally {
       setEnviandoDemo(false);
     }
@@ -381,25 +391,50 @@ export default function ClientesPage() {
               </button>
             </div>
 
-            {mensajeDemo ? (
+            {estadoDemo ? (
               <div className="space-y-4 py-4 text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-estratego-success/10 flex items-center justify-center text-estratego-success">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                  </svg>
+                {estadoDemo === 'success' ? (
+                  <div className="mx-auto w-12 h-12 rounded-full bg-estratego-success/10 flex items-center justify-center text-estratego-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="mx-auto w-12 h-12 rounded-full bg-estratego-danger/10 flex items-center justify-center text-estratego-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                )}
+                
+                <p className="text-sm text-slate-300 px-2">{mensajeDemo}</p>
+                
+                <div className="flex gap-3 pt-2">
+                  {estadoDemo === 'error' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEstadoDemo(null);
+                        setMensajeDemo('');
+                      }}
+                      className="w-1/2 btn-ghost py-2 text-sm"
+                    >
+                      Corregir
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarModalDemo(false);
+                      setDemoForm({ nombre: '', telefono: '' });
+                      setMensajeDemo('');
+                      setEstadoDemo(null);
+                    }}
+                    className={`${estadoDemo === 'error' ? 'w-1/2' : 'w-full'} btn-gold py-2 text-sm`}
+                  >
+                    Cerrar
+                  </button>
                 </div>
-                <p className="text-sm text-slate-300">{mensajeDemo}</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMostrarModalDemo(false);
-                    setDemoForm({ nombre: '', telefono: '' });
-                    setMensajeDemo('');
-                  }}
-                  className="btn-gold w-full mt-2"
-                >
-                  Cerrar
-                </button>
               </div>
             ) : (
               <form onSubmit={handleDemoSubmit} className="space-y-4">
