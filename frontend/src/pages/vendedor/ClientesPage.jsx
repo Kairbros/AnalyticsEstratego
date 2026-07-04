@@ -17,6 +17,18 @@ const formInicial = {
   notas: '',
 };
 
+const PREFIJOS = [
+  { codigo: '57', etiqueta: 'Colombia (+57)', length: 10 },
+  { codigo: '34', etiqueta: 'España (+34)', length: 9 },
+  { codigo: '52', etiqueta: 'México (+52)', length: 10 },
+  { codigo: '1', etiqueta: 'EE.UU. / Canadá (+1)', length: 10 },
+  { codigo: '58', etiqueta: 'Venezuela (+58)', length: 10 },
+  { codigo: '593', etiqueta: 'Ecuador (+593)', length: 9 },
+  { codigo: '51', etiqueta: 'Perú (+51)', length: 9 },
+  { codigo: '56', etiqueta: 'Chile (+56)', length: 9 },
+  { codigo: '54', etiqueta: 'Argentina (+54)', length: 10 },
+];
+
 export default function ClientesPage() {
   const [clientes, setClientes] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -32,17 +44,22 @@ export default function ClientesPage() {
   // States for Demo request
   const [mostrarModalDemo, setMostrarModalDemo] = useState(false);
   const [demoForm, setDemoForm] = useState({ nombre: '', telefono: '' });
+  const [prefijoSeleccionado, setPrefijoSeleccionado] = useState('57');
   const [enviandoDemo, setEnviandoDemo] = useState(false);
   const [mensajeDemo, setMensajeDemo] = useState('');
   const [estadoDemo, setEstadoDemo] = useState(null); // null | 'success' | 'error'
 
+  const prefijoObj = PREFIJOS.find((p) => p.codigo === prefijoSeleccionado) || PREFIJOS[0];
+  const esTelefonoValido = demoForm.telefono.length === prefijoObj.length;
+
   async function handleDemoSubmit(e) {
     e.preventDefault();
+    if (!esTelefonoValido) return;
     setEnviandoDemo(true);
     setMensajeDemo('');
     setEstadoDemo(null);
     try {
-      const cleanedTelefono = demoForm.telefono.replace(/\D/g, '');
+      const cleanedTelefono = prefijoSeleccionado + demoForm.telefono.replace(/\D/g, '');
       await solicitarDemoWebhook(cleanedTelefono);
       setEstadoDemo('success');
       setMensajeDemo('Debes esperar unos minutos.');
@@ -445,15 +462,39 @@ export default function ClientesPage() {
 
                 <div className="flex flex-col">
                   <label className="text-xs font-medium text-slate-300 mb-1">Número de Teléfono *</label>
-                  <input
-                    type="tel"
-                    name="telefono"
-                    value={demoForm.telefono}
-                    onChange={(e) => setDemoForm(f => ({ ...f, telefono: e.target.value }))}
-                    required
-                    className="input"
-                    placeholder="Ej. +57 300 123 4567"
-                  />
+                  <div className="flex gap-2">
+                    <select
+                      value={prefijoSeleccionado}
+                      onChange={(e) => {
+                        setPrefijoSeleccionado(e.target.value);
+                        setDemoForm((f) => ({ ...f, telefono: '' }));
+                      }}
+                      className="input w-1/3 min-w-[125px]"
+                    >
+                      {PREFIJOS.map((p) => (
+                        <option key={p.codigo} value={p.codigo}>
+                          {p.etiqueta}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      name="telefono"
+                      value={demoForm.telefono}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, ''); // Solo números
+                        setDemoForm((f) => ({ ...f, telefono: val }));
+                      }}
+                      required
+                      className="input w-2/3"
+                      placeholder={`Ej. ${prefijoObj.length === 10 ? '3001234567' : '600123456'}`}
+                    />
+                  </div>
+                  {demoForm.telefono && !esTelefonoValido && (
+                    <span className="text-[11px] text-estratego-danger mt-1">
+                      El número debe tener exactamente {prefijoObj.length} dígitos (actual: {demoForm.telefono.length}).
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
@@ -462,6 +503,7 @@ export default function ClientesPage() {
                     onClick={() => {
                       setMostrarModalDemo(false);
                       setDemoForm({ nombre: '', telefono: '' });
+                      setEstadoDemo(null);
                     }}
                     className="w-1/2 btn-ghost py-2 text-sm"
                   >
@@ -469,8 +511,8 @@ export default function ClientesPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={enviandoDemo}
-                    className="w-1/2 btn-gold py-2 text-sm"
+                    disabled={enviandoDemo || !esTelefonoValido || !demoForm.nombre.trim()}
+                    className="w-1/2 btn-gold py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {enviandoDemo ? 'Enviando…' : 'Solicitar'}
                   </button>
