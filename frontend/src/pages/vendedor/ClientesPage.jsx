@@ -18,15 +18,15 @@ const formInicial = {
 };
 
 const PREFIJOS = [
-  { codigo: '57', etiqueta: 'Colombia (+57)', length: 10 },
-  { codigo: '34', etiqueta: 'España (+34)', length: 9 },
-  { codigo: '52', etiqueta: 'México (+52)', length: 10 },
-  { codigo: '1', etiqueta: 'EE.UU. / Canadá (+1)', length: 10 },
-  { codigo: '58', etiqueta: 'Venezuela (+58)', length: 10 },
-  { codigo: '593', etiqueta: 'Ecuador (+593)', length: 9 },
-  { codigo: '51', etiqueta: 'Perú (+51)', length: 9 },
-  { codigo: '56', etiqueta: 'Chile (+56)', length: 9 },
-  { codigo: '54', etiqueta: 'Argentina (+54)', length: 10 },
+  { codigo: '57', etiqueta: '🇨🇴 Colombia (+57)', length: 10 },
+  { codigo: '34', etiqueta: '🇪🇸 España (+34)', length: 9 },
+  { codigo: '52', etiqueta: '🇲🇽 México (+52)', length: 10 },
+  { codigo: '1', etiqueta: '🇺🇸 EE.UU. / Canadá (+1)', length: 10 },
+  { codigo: '58', etiqueta: '🇻🇪 Venezuela (+58)', length: 10 },
+  { codigo: '593', etiqueta: '🇪🇨 Ecuador (+593)', length: 9 },
+  { codigo: '51', etiqueta: '🇵🇪 Perú (+51)', length: 9 },
+  { codigo: '56', etiqueta: '🇨🇱 Chile (+56)', length: 9 },
+  { codigo: '54', etiqueta: '🇦🇷 Argentina (+54)', length: 10 },
 ];
 
 export default function ClientesPage() {
