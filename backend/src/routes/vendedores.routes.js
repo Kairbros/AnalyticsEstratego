@@ -73,4 +73,38 @@ router.post('/:id/regenerar-password', requireAuth, requireRole('super_admin'), 
   }
 });
 
+// Proxy para solicitar demo webhook (evita CORS en frontend)
+router.post('/solicitar-demo', requireAuth, requireRole('vendedor'), async (req, res, next) => {
+  const { telefono } = req.body;
+  if (!telefono) {
+    return res.status(400).json({ error: 'El teléfono es requerido' });
+  }
+
+  try {
+    const webhookUrl = 'https://bestai.bestvoiper.com/api/outbound/webhook/5474cf64da846350cb51a278c35cecd9e399bd1e27a3a0d0da97bd41aabab47d';
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ telefono }),
+    });
+
+    if (response.status === 200) {
+      return res.status(200).json({ success: true });
+    }
+
+    let errorDetails = '';
+    try {
+      errorDetails = await response.text();
+    } catch {}
+
+    return res.status(response.status).json({
+      error: errorDetails || response.statusText || 'Error en webhook externo',
+    });
+  } catch (err) {
+    return res.status(500).json({ error: `Error de red en el proxy: ${err.message}` });
+  }
+});
+
 export default router;

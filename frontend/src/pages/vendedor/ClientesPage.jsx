@@ -6,6 +6,7 @@ import {
   crearCliente,
   regenerarPasswordCliente,
 } from '../../services/clientes.service';
+import { solicitarDemoWebhook } from '../../services/vendedores.service';
 
 const formInicial = {
   email: '',
@@ -42,31 +43,18 @@ export default function ClientesPage() {
     setEstadoDemo(null);
     try {
       const cleanedTelefono = demoForm.telefono.replace(/\D/g, '');
-      const webhookUrl = 'https://bestai.bestvoiper.com/api/outbound/webhook/5474cf64da846350cb51a278c35cecd9e399bd1e27a3a0d0da97bd41aabab47d';
-      
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telefono: cleanedTelefono })
-      });
-
-      if (response.status === 200) {
-        setEstadoDemo('success');
-        setMensajeDemo('Debes esperar unos minutos.');
-      } else {
-        setEstadoDemo('error');
-        let errorDetails = '';
-        try {
-          const data = await response.json();
-          errorDetails = data.message || data.error || JSON.stringify(data);
-        } catch {
-          errorDetails = `HTTP ${response.status}: ${response.statusText || 'Error desconocido'}`;
-        }
-        setMensajeDemo(`No se pudo procesar la solicitud: ${errorDetails}`);
-      }
+      await solicitarDemoWebhook(cleanedTelefono);
+      setEstadoDemo('success');
+      setMensajeDemo('Debes esperar unos minutos.');
     } catch (err) {
       setEstadoDemo('error');
-      setMensajeDemo(`Error de red o conexión: ${err.message || err}`);
+      let errorDetails = '';
+      if (err.response) {
+        errorDetails = err.response.data?.error || err.response.data?.message || `HTTP ${err.response.status}: ${err.response.statusText}`;
+      } else {
+        errorDetails = err.message || 'Error de conexión';
+      }
+      setMensajeDemo(`No se pudo procesar la solicitud: ${errorDetails}`);
     } finally {
       setEnviandoDemo(false);
     }
