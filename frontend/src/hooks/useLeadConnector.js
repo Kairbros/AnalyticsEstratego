@@ -6,7 +6,8 @@ export default function useLeadConnector() {
     const style = document.createElement('style');
     style.id = 'show-chat-widget-style';
     style.innerHTML = `
-      chat-widget {
+      chat-widget,
+      div[data-chat-widget] {
         display: block !important;
       }
     `;

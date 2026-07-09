@@ -59,7 +59,9 @@ input[type='number'] {
 }
 
 /* Ocultar el widget de chat por defecto */
-chat-widget {
+chat-widget,
+div[data-chat-widget] {
   display: none !important;
 }
+
 
