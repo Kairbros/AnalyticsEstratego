@@ -57,3 +57,9 @@ input[type='number'] {
     @apply inline-flex items-center text-[10px] tracking-wider uppercase font-semibold px-2 py-0.5 rounded;
   }
 }
+
+/* Ocultar el widget de chat por defecto */
+chat-widget {
+  display: none !important;
+}
+
