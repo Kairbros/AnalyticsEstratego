@@ -36,6 +36,7 @@ input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
 input[type='number'] {
   -moz-appearance: textfield;
 }
@@ -44,15 +45,19 @@ input[type='number'] {
   .card {
     @apply bg-estratego-surface border border-estratego-border rounded-2xl p-6;
   }
+
   .input {
     @apply w-full bg-estratego-ink border border-estratego-border rounded-lg px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-estratego-gold focus:ring-1 focus:ring-estratego-gold/50 disabled:bg-estratego-surface/50 disabled:text-slate-500;
   }
+
   .btn-gold {
     @apply bg-estratego-gold text-estratego-ink font-semibold rounded-lg px-4 py-2 text-sm hover:bg-estratego-gold-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
+
   .btn-ghost {
     @apply border border-estratego-border text-slate-200 rounded-lg px-3 py-1.5 text-xs hover:border-estratego-gold hover:text-estratego-gold disabled:opacity-50 transition-colors;
   }
+
   .pill {
     @apply inline-flex items-center text-[10px] tracking-wider uppercase font-semibold px-2 py-0.5 rounded;
   }
@@ -64,4 +69,8 @@ div[data-chat-widget] {
   display: none !important;
 }
 
-
+/* Ajustar posición para que no quede tan abajo */
+body chat-widget {
+  bottom: 70px !important;
+  right: 30px !important;
+}
