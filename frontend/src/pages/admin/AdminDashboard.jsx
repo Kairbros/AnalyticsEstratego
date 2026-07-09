@@ -6,8 +6,11 @@ import {
   regenerarPasswordVendedor,
   listarClientesDeVendedor,
 } from '../../services/vendedores.service';
+import useLeadConnector from '../../hooks/useLeadConnector';
 
 export default function AdminDashboard() {
+  useLeadConnector();
+
   const [vendedores, setVendedores] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState('');
